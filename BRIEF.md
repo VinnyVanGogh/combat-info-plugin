@@ -145,6 +145,36 @@ Note the testing rule in `AGENTS.md`: you cannot verify in-game behaviour
 yourself, and must not try. This phase is instrumentation you write and the
 **user** runs.
 
+### Phase 0.5 findings — completed 2026-08-26
+
+Measured with HealthScaleProbe against live NPCs and the local player.
+Raw data: `.runelite/combat-info/health-scale-probe.csv`.
+
+**`healthScale` is 30 for every actor observed** — four distinct Guard ids, a
+Man, and a level-105 player. It is a fixed health-bar resolution, not the
+actor's max health. The condition for exact recovery therefore reduces to
+`maxHealth <= 30`.
+
+- **NPC targets: exact.** Guard (maxHealth 22, healthScale 30, ratio 20)
+  recovers min 15 / max 15 — a single value. `NPCManager.getHealth()` gives
+  the max health, so the NPC readout can print an integer honestly. Bosses
+  above 30 hitpoints are the exception and fall to the interval case.
+- **Player targets: an interval, never exact.** Any account above 30
+  hitpoints, which is all of them. Worked example at 99 hitpoints and
+  ratio 15: min 48, max 51 — a 4-wide band. The base client prints the
+  midpoint, 50, formatted identically to a known value.
+
+**Consequence for Phase 2, binding:** the player readout must render a range
+or a percentage. It must never format a recovered player health as a bare
+integer. The "honest uncertainty" line in this brief is the whole point of
+the plugin, not a nicety — stock is actively misleading here and that is the
+gap worth shipping into.
+
+Outstanding, low risk: the only player sample is the local player. An
+opponent player in PvP is near-certainly also scale 30, but has not been
+directly observed. Confirm opportunistically; the verdict does not depend on
+it, since 30 is below any real account's hitpoints either way.
+
 ---
 
 ## Phase 1 — Reference reading

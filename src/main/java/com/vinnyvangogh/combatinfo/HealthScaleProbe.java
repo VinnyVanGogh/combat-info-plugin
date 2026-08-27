@@ -132,7 +132,14 @@ class HealthScaleProbe
 			return;
 		}
 
-		opponent = target;
+		// A null target means the interaction ended, not that there is no
+		// opponent worth sampling — the health bar lingers for a few seconds
+		// after combat. Overwriting with null threw those samples away. Stock
+		// keeps its last opponent here too and expires it on a timer instead.
+		if (target != null)
+		{
+			opponent = target;
+		}
 	}
 
 	@Subscribe
