@@ -81,6 +81,50 @@ base client already does this for player opponents, resolving max HP from
 would require a second concurrent lookup, stop and flag it rather than building
 it. That single-target gate is the entire compliance basis for this feature.
 
+### Phase 0 findings — completed 2026-08-26
+
+Sources read: RuneLite `Rejected-or-Rolled-Back-Features`; Jagex Third Party
+Client Guidelines (via the OSRS Wiki mirror — `secure.runescape.com` returns
+HTTP 403); `legal.jagex.com` macro-and-client-features rules; plugin-hub
+README; RuneLite wiki `Plugin-Hub-Review` and
+`Information-about-the-Plugin-Hub`; base-client `opponentinfo` and `hiscore`
+sources.
+
+- The clause this lookup rests on, from Jagex's rules: "each page/content
+  request should only be in direct response to a user request each time",
+  alongside a prohibition on "repeated page/content requests from our
+  website". Not in `AGENTS.md`. It is the sentence a reviewer applies.
+- The hiscores endpoint is `services.runescape.com` / `secure.runescape.com`
+  — Jagex's own servers, not a third party. `AGENTS.md`'s mandatory warning
+  string about "a 3rd-party server not controlled or verified by RuneLite
+  developers" is therefore inaccurate for this feature. Do not paste it
+  verbatim; write a warning that says what is actually sent.
+- The base client already gates on
+  `event.getSource() != client.getLocalPlayer()` in
+  `OpponentInfoPlugin.onInteractingChanged`. This brief's gate matches
+  precedent exactly.
+- `HiscoreManager` is an `@Singleton` over a shared Guava cache
+  (`maximumSize(128)`, `expireAfterWrite(1, HOURS)`, a `NONE` sentinel for
+  unranked). The cache is shared with the stock plugin and the Hiscore
+  plugin, so enabling both cannot double-request, and `lookupAsync` is safe
+  to call per-frame. Unranked degrades to `null` cleanly, as required above.
+- Jagex's list carries a catch-all: "Any features which act similarly to
+  those described in the above list can also be considered unacceptable."
+  Absence from the list is not permission.
+- RuneLite rejects generic player highlighting, not only the level-based
+  kind, citing harassment and private-message-mode privacy. Wider than the
+  `AGENTS.md` wording implies.
+- Plugin Hub review has explicit non-goals: it does not check functionality,
+  performance, or the factual accuracy of displayed information. The "honest
+  uncertainty" principle in this brief is a self-imposed quality bar, not a
+  review requirement, and will not earn credit in review.
+- Resources ship inside a jar. Use `Class.getResourceAsStream`, never
+  `getResource`.
+- Icon, if added: `icon.png` at the repository root, max 48x72 px.
+
+Verdict: no part of Phase 2 requires a second concurrent lookup. The hard
+invariant holds.
+
 ---
 
 ## Phase 0.5 — Measure before building
@@ -166,17 +210,30 @@ network, no compliance surface.
 - Percentage from the health ratio — no lookup required.
 - Exact or interval HP via the single-opponent hiscores lookup described in
   Phase 0.
-- Gate the lookup behind a config flag, default off, mirroring
-  `lookupOnInteraction()`.
+- Two config flags, matching the base client's actual shape:
+  `showPlayerHitpoints` (the HP lookup) defaults **on**;
+  `showStatComparison` (the stat table) defaults **off**. Decided 2026-08-26.
+
+  Correction: an earlier draft of this brief said the HP lookup mirrors
+  `lookupOnInteraction()`. It does not. In the base client the lookup in
+  `OpponentInfoOverlay.render()` is ungated by any config item —
+  `lookupOnInteraction` (default false) gates only `PlayerComparisonOverlay`.
+  Default-on therefore *is* stock precedent. Give it an off switch anyway;
+  stock has none, and having one is worth stating in the submission PR.
+- Overhead rendering and name whitelist/blacklist apply to player targets,
+  not NPC-only. Decided 2026-08-26, without a Discord ask. Build it behind an
+  `overheadForPlayers` toggle so the conservative fallback is a default flip
+  rather than surgery on the render path.
 - Handle the unranked case: a player absent from the hiscores must degrade
   cleanly to percentage display, not to a wrong number or an error.
 - Optional: a combat stat comparison panel from the same cached result.
 
-### Needs review before building
+### Cut
 
-Flag rather than implement — these sit near the "impossible switches in PvP"
-language in Jagex's 2022 statement, and near `AGENTS.md`'s "no attack counters"
-and "no PvP target scouting information". Ask on the RuneLite Discord first:
+Cut 2026-08-26 — cut, not deferred. These sit near the "impossible switches in
+PvP" language in Jagex's 2022 statement, and near `AGENTS.md`'s "no attack
+counters" and "no PvP target scouting information". Nothing in the overlay
+needs them. Do not reintroduce without revisiting Phase 0.
 
 - Time-to-kill or kill-threshold estimates against a player target
 - Damage-dealt history or DPS tracking scoped to a PvP opponent
@@ -190,6 +247,10 @@ naming, and packaging, and they apply in full. What is specific to this plugin:
 
 - RuneLite dependency stays pinned to an explicit version. Already done —
   `build.gradle` pins `1.12.37`; bump deliberately, never to `latest.release`.
+  Note (Phase 0): `runelite-plugin.properties` sets `build=standard`, and the
+  plugin-hub packager replaces `build.gradle` and `settings.gradle` at
+  submission. The pin governs local development only — it does not make the
+  hub build reproducible. Keep it for local determinism; claim no more.
 - No mutation of injected shared singletons. In particular, do not call
   `registerTypeAdapter` on an injected `GsonBuilder` — build any Gson instance
   once into a field.
