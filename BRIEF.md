@@ -170,10 +170,15 @@ integer. The "honest uncertainty" line in this brief is the whole point of
 the plugin, not a nicety — stock is actively misleading here and that is the
 gap worth shipping into.
 
-Outstanding, low risk: the only player sample is the local player. An
-opponent player in PvP is near-certainly also scale 30, but has not been
-directly observed. Confirm opportunistically; the verdict does not depend on
-it, since 30 is below any real account's hitpoints either way.
+Confirmed against a live player opponent: a live opponent, combat 91, healthScale
+30 across ratios 23, 20 and 19 during an actual fight. Every actor measured —
+NPC, local player, and opposing player — reports scale 30, so nothing about
+the verdict is left resting on inference.
+
+Interval width is roughly `maxHealth / (healthScale - 1)`, so about 3 hitpoints
+at 80 max and about 4 at 99. That is wide enough to matter: in PvP it is the
+difference between a hit killing and not, which is exactly the judgement a
+midpoint printed as an integer invites a user to make wrongly.
 
 ---
 
