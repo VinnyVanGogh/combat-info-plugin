@@ -215,6 +215,50 @@ the moment a player is deciding whether their next hit kills.
 **API surface:** `Actor.getHealthRatio()`, `Actor.getHealthScale()`,
 `NPCComposition`, `NPCManager.getHealth()`, `OverlayManager`, `OverlayPosition`.
 
+### Phase 1 findings — completed 2026-08-26
+
+**Reuse from the base client.**
+
+- `hasHpHud()` is NPC-only — it returns false for players outright. It reads
+  `VarbitID.HPBAR_HUD_BOSS_DISABLED` and `VarPlayerID.HPBAR_HUD_NPC` and
+  compares against the NPC's composition id. There is no in-game HUD to
+  suppress against for a player target, so the suppression rule in Phase 2
+  applies to NPCs only.
+- `HiscorePlugin` gates its lookup on an explicit "Lookup" menu entry added
+  behind `config.playerOption()`. That is the cleanest available statement of
+  "in direct response to a user request" and is worth citing in the PR.
+
+**Reuse from `devrat0/npc-health-text-plugin`.**
+
+- Overhead drawing is `OverlayPosition.DYNAMIC` + `OverlayLayer.UNDER_WIDGETS`.
+- Vertical placement resolves off `Actor.getLogicalHeight()`: TOP is the full
+  height, MIDDLE is half, BOTTOM is 0, plus a configurable pixel offset, fed
+  to `getCanvasTextLocation()`.
+- Per-target overrides are a single config string of comma-separated
+  `pattern:top|middle|bottom` entries, matched with RuneLite's own
+  `WildcardMatcher`. This satisfies the Phase 2 requirement with no new
+  dependency, which matters because non-RuneLite dependencies need hash
+  verification and slow review.
+
+**Do not copy from it.** It is a useful reference, not a model.
+
+- It reads the boss bar with `client.getWidget(303, 0)` and parses the text
+  out of it. `AGENTS.md` forbids both the hardcoded interface id and the
+  manual interface/component combination. The base client's varbit check is
+  correct and cheaper; use that.
+- It iterates every visible NPC every frame. `AGENTS.md` forbids scanning the
+  scene per frame, and this plugin has no need to: we track exactly one
+  opponent, already delivered by `InteractingChanged`.
+- Its formatter builds a template then strips empty brackets and stray
+  separators back out with a chain of regexes. If Phase 2 offers a format
+  string, design the placeholders so that unset values do not need cleaning
+  up afterwards.
+
+**The gap is confirmed.** That plugin is NPC-only — it has no player rendering
+at all. Overhead health for a player target is not something a hub plugin
+currently does, which is the differentiator, and also why it was the one item
+worth asking about rather than assuming.
+
 ---
 
 ## Phase 2 — Scope
