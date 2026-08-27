@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,11 +83,16 @@ class HealthScaleProbe
 	private File csvFile;
 	private int rowCount;
 	private Actor opponent;
+	private int ticks;
 
 	void startUp()
 	{
 		csvFile = new File(new File(RuneLite.RUNELITE_DIR, "combat-info"), "health-scale-probe.csv");
 		rowCount = 0;
+		ticks = 0;
+		// Write the header eagerly, so an absent file means startUp never ran
+		// rather than being indistinguishable from "ran but sampled nothing".
+		executor.execute(this::ensureFile);
 		flushFuture = executor.scheduleWithFixedDelay(
 			this::flush, FLUSH_PERIOD_SECONDS, FLUSH_PERIOD_SECONDS, TimeUnit.SECONDS);
 		log.debug("Health scale probe writing to {}", csvFile);
@@ -113,12 +119,20 @@ class HealthScaleProbe
 	@Subscribe
 	public void onInteractingChanged(InteractingChanged event)
 	{
-		if (event.getSource() != client.getLocalPlayer())
+		final boolean fromUs = event.getSource() == client.getLocalPlayer();
+		final Actor target = event.getTarget();
+
+		log.debug("Probe interacting: fromUs={} target={} ({})",
+			fromUs,
+			target == null ? null : target.getName(),
+			target == null ? "null" : target.getClass().getSimpleName());
+
+		if (!fromUs)
 		{
 			return;
 		}
 
-		opponent = event.getTarget();
+		opponent = target;
 	}
 
 	@Subscribe
@@ -129,6 +143,43 @@ class HealthScaleProbe
 		// it tests maxHealth <= healthScale directly rather than by inference.
 		record(client.getLocalPlayer());
 		record(opponent);
+
+		// Heartbeat. The first version of this probe logged only on a successful
+		// sample, which made "produced nothing" indistinguishable from "never
+		// ran". Log the raw values unconditionally instead, -1s included.
+		if (++ticks % 5 == 0)
+		{
+			final Actor self = client.getLocalPlayer();
+			log.debug("Probe tick {}: self[scale={} ratio={}] opponent={}[scale={} ratio={}] rows={}",
+				ticks,
+				self == null ? -99 : self.getHealthScale(),
+				self == null ? -99 : self.getHealthRatio(),
+				opponent == null ? null : opponent.getName(),
+				opponent == null ? -99 : opponent.getHealthScale(),
+				opponent == null ? -99 : opponent.getHealthRatio(),
+				rowCount);
+		}
+	}
+
+	private void ensureFile()
+	{
+		try
+		{
+			Files.createDirectories(csvFile.getParentFile().toPath());
+			if (!csvFile.exists())
+			{
+				Files.write(csvFile.toPath(),
+					Collections.singletonList(CSV_HEADER),
+					StandardCharsets.UTF_8,
+					StandardOpenOption.CREATE,
+					StandardOpenOption.APPEND);
+				log.debug("Probe file created: {}", csvFile);
+			}
+		}
+		catch (IOException e)
+		{
+			log.debug("Probe could not create {}", csvFile, e);
+		}
 	}
 
 	private void record(Actor actor)
@@ -225,14 +276,7 @@ class HealthScaleProbe
 
 		try
 		{
-			final boolean fresh = !csvFile.exists();
-			Files.createDirectories(csvFile.getParentFile().toPath());
-
-			if (fresh)
-			{
-				rows.add(0, CSV_HEADER);
-			}
-
+			ensureFile();
 			Files.write(csvFile.toPath(),
 				rows,
 				StandardCharsets.UTF_8,
