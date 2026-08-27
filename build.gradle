@@ -44,6 +44,16 @@ tasks.register('run', JavaExec) {
 	mainClass = pluginMainClass
 
 	jvmArgs "-ea"
+
+	// RuneLite's OSXFullScreenAdapter extends com.apple.eawt.FullScreenAdapter.
+	// java.desktop stopped exporting com.apple.eawt to the unnamed module after
+	// Java 8, so on macOS the developer client dies at startup with
+	// IllegalAccessError unless the export is reopened. Dev-only: the Plugin Hub
+	// packager replaces this file at submission because build=standard.
+	if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+		jvmArgs "--add-exports", "java.desktop/com.apple.eawt=ALL-UNNAMED"
+	}
+
 	args "--developer-mode", "--debug"
 }
 
