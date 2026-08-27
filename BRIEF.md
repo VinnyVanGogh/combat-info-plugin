@@ -180,6 +180,17 @@ at 80 max and about 4 at 99. That is wide enough to matter: in PvP it is the
 difference between a hit killing and not, which is exactly the judgement a
 midpoint printed as an integer invites a user to make wrongly.
 
+Observed live during the same fight. An existing plugin displayed `29/88`
+for this opponent while the probe recorded `ratio=10`. The 88 is exact — it
+is the hiscores Hitpoints level. The 29 is not: healths 28, 29 and 30 all
+produce ratio 10, and 29 is merely the midpoint, rendered in the same
+typeface as the number beside it that is genuinely known. At the same
+fight's `ratio=5` sample the band is {13, 14, 15} and the display reads 14.
+
+This is the plugin's reason to exist, stated concretely: not that stock
+lacks a range, but that stock presents a guess as a measurement at exactly
+the moment a player is deciding whether their next hit kills.
+
 ---
 
 ## Phase 1 — Reference reading
