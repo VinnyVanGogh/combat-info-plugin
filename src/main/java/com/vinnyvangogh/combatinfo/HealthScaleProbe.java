@@ -21,6 +21,7 @@ import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
 import net.runelite.client.RuneLite;
@@ -55,7 +56,8 @@ import net.runelite.client.util.Text;
 class HealthScaleProbe
 {
 	private static final String CSV_HEADER =
-		"tick,actorType,name,combatLevel,healthScale,healthRatio,npcId,npcMaxHealth";
+		"tick,actorType,name,combatLevel,healthScale,healthRatio,npcId,knownMax,"
+			+ "trueHp,recoveredMin,recoveredMax,recoveredMid,midpointHit";
 
 	/** Guard against an unattended client filling the disk. */
 	private static final int MAX_ROWS = 20_000;
@@ -208,35 +210,63 @@ class HealthScaleProbe
 		final String name = actor.getName() == null ? "?" : Text.removeTags(actor.getName());
 		final String type = actor instanceof Player ? "PLAYER" : "NPC";
 
-		final String key = type + '|' + name + '|' + healthScale + '|' + healthRatio;
+		final boolean isSelf = actor == client.getLocalPlayer();
+
+		// Only the local player's true health is knowable — the hitpoints orb.
+		// It is the ground truth the recovered range is checked against, and it
+		// belongs in the dedupe key so regeneration ticks are recorded rather
+		// than folded into the previous sample.
+		final int trueHp = isSelf ? client.getBoostedSkillLevel(Skill.HITPOINTS) : -1;
+
+		final String key = type + '|' + name + '|' + healthScale + '|' + healthRatio + '|' + trueHp;
 		if (!seen.add(key))
 		{
 			return;
 		}
 
 		String npcId = "";
-		String npcMaxHealth = "";
+		Integer knownMax = null;
 		int combatLevel = -1;
 
 		if (actor instanceof NPC)
 		{
 			final NPC npc = (NPC) actor;
 			npcId = Integer.toString(npc.getId());
-
-			// NPC max health is known exactly from the cache, which makes NPC rows
-			// a ground truth for whether the recovery math is implemented right,
-			// checkable without a PvP world.
-			final Integer health = npcManager.getHealth(npc.getId());
-			if (health != null)
-			{
-				npcMaxHealth = Integer.toString(health);
-			}
-
+			knownMax = npcManager.getHealth(npc.getId());
 			combatLevel = npc.getCombatLevel();
 		}
 		else if (actor instanceof Player)
 		{
 			combatLevel = ((Player) actor).getCombatLevel();
+
+			if (isSelf)
+			{
+				knownMax = client.getRealSkillLevel(Skill.HITPOINTS);
+			}
+		}
+
+		// Where the max is known the range can be recovered, and for the local
+		// player it can be scored against the truth. That comparison is the
+		// point of the exercise: it says how often the midpoint the base client
+		// prints is actually the player's health.
+		String recoveredMin = "";
+		String recoveredMax = "";
+		String recoveredMid = "";
+		String midpointHit = "";
+
+		if (knownMax != null && knownMax > 0)
+		{
+			final HealthRecovery.Range range = HealthRecovery.recover(healthRatio, healthScale, knownMax);
+			recoveredMin = Integer.toString(range.min());
+			recoveredMax = Integer.toString(range.max());
+			recoveredMid = Integer.toString(range.midpoint());
+
+			if (trueHp >= 0)
+			{
+				midpointHit = range.midpoint() == trueHp
+					? "exact"
+					: (trueHp >= range.min() && trueHp <= range.max() ? "inRange" : "MISS");
+			}
 		}
 
 		pending.add(String.join(",",
@@ -247,7 +277,12 @@ class HealthScaleProbe
 			Integer.toString(healthScale),
 			Integer.toString(healthRatio),
 			npcId,
-			npcMaxHealth));
+			knownMax == null ? "" : Integer.toString(knownMax),
+			trueHp < 0 ? "" : Integer.toString(trueHp),
+			recoveredMin,
+			recoveredMax,
+			recoveredMid,
+			midpointHit));
 		rowCount++;
 
 		if (scalesSeen.add(type + '|' + healthScale))
