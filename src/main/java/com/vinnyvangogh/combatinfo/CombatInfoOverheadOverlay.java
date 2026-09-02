@@ -2,6 +2,7 @@ package com.vinnyvangogh.combatinfo;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Actor;
@@ -17,6 +18,13 @@ import net.runelite.client.ui.overlay.OverlayUtil;
  */
 class CombatInfoOverheadOverlay extends Overlay
 {
+	/** Space between the text and the edge of the bar behind it. */
+	private static final int PAD_X = 4;
+	private static final int PAD_Y = 2;
+
+	private static final Color BAR_BACKGROUND = new Color(0, 0, 0, 150);
+	private static final Color BAR_BORDER = new Color(0, 0, 0, 200);
+
 	private final CombatInfoPlugin plugin;
 	private final CombatInfoConfig config;
 
@@ -63,12 +71,53 @@ class CombatInfoOverheadOverlay extends Overlay
 			return null;
 		}
 
-		final Color colour = config.colourGradient()
-			? HealthReadout.colour(HealthReadout.fraction(readout.getRatio(), readout.getScale()))
-			: Color.WHITE;
+		final double fraction = HealthReadout.fraction(readout.getRatio(), readout.getScale());
 
-		OverlayUtil.renderTextLocation(graphics, location, text, colour);
+		if (!config.overheadBar())
+		{
+			final Color colour = config.colourGradient() ? HealthReadout.colour(fraction) : Color.WHITE;
+			OverlayUtil.renderTextLocation(graphics, location, text, colour);
+			return null;
+		}
+
+		drawBar(graphics, location, text, fraction);
+
+		// White on a filled bar. Colouring the text as well as the bar makes the
+		// two fight each other — red text on a green bar is the worst case and
+		// the reason this option exists.
+		OverlayUtil.renderTextLocation(graphics, location, text, Color.WHITE);
 		return null;
+	}
+
+	/**
+	 * A bar exactly as wide as the text it sits behind. The game's own bar is a
+	 * fixed handful of pixels and the readout is always wider, so sizing to the
+	 * text is what makes the two legible together instead of overlapping.
+	 */
+	private void drawBar(Graphics2D graphics, Point location, String text, double fraction)
+	{
+		final FontMetrics metrics = graphics.getFontMetrics();
+		final int textWidth = metrics.stringWidth(text);
+
+		final int x = location.getX() - PAD_X;
+		final int y = location.getY() - metrics.getAscent() - PAD_Y;
+		final int width = textWidth + PAD_X * 2;
+		final int height = metrics.getAscent() + metrics.getDescent() + PAD_Y * 2;
+
+		graphics.setColor(BAR_BACKGROUND);
+		graphics.fillRect(x, y, width, height);
+
+		final int filled = (int) Math.round(width * Math.max(0, Math.min(1, fraction)));
+		if (filled > 0)
+		{
+			graphics.setColor(config.colourGradient()
+				? HealthReadout.colour(fraction)
+				: new Color(0, 146, 54, 230));
+			graphics.fillRect(x, y, filled, height);
+		}
+
+		graphics.setColor(BAR_BORDER);
+		graphics.drawRect(x, y, width, height);
 	}
 
 	/**

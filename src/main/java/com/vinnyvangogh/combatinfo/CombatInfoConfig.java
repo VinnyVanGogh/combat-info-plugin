@@ -102,11 +102,25 @@ public interface CombatInfoConfig extends Config
 		name = "Overhead position",
 		description = "Where above the target the text sits. Large NPCs often read better on Bottom.",
 		section = displaySection,
-		position = 5
+		position = 7
 	)
 	default OverheadPosition overheadPosition()
 	{
 		return OverheadPosition.TOP;
+	}
+
+	@ConfigItem(
+		keyName = "overheadBar",
+		name = "Bar behind text",
+		description =
+			"Draw a health bar sized to fit the text behind it. The bar carries the colour and the "
+				+ "text stays white, so the two do not compete. Off draws coloured text only.",
+		section = displaySection,
+		position = 5
+	)
+	default boolean overheadBar()
+	{
+		return true;
 	}
 
 	@Range(min = -200, max = 200)
@@ -115,7 +129,7 @@ public interface CombatInfoConfig extends Config
 		name = "Overhead offset",
 		description = "Extra height in pixels, applied after the position above.",
 		section = displaySection,
-		position = 6
+		position = 8
 	)
 	default int overheadOffset()
 	{
