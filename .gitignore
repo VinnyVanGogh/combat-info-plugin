@@ -13,3 +13,6 @@ docs/phase-0.5/*.csv
 
 # Not part of this plugin; appeared in the working tree from another tool.
 account_app.css
+
+# Agent instructions, not part of the plugin.
+CLAUDE.md
