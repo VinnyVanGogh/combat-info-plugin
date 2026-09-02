@@ -12,11 +12,13 @@ import net.runelite.api.NPC;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.ParamID;
 import net.runelite.api.Player;
+import net.runelite.api.Renderable;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.callback.Hooks;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -81,6 +83,11 @@ public class CombatInfoPlugin extends Plugin
 	@Inject
 	private HealthScaleProbe healthScaleProbe;
 
+	@Inject
+	private Hooks hooks;
+
+	private final Hooks.RenderableDrawListener drawListener = this::shouldDraw;
+
 	/** Replaced wholesale each tick, never mutated, so the overlay thread sees a consistent view. */
 	@Getter
 	private volatile Readout readout;
@@ -102,6 +109,7 @@ public class CombatInfoPlugin extends Plugin
 	{
 		overlayManager.add(panelOverlay);
 		overlayManager.add(overheadOverlay);
+		hooks.registerRenderableDrawListener(drawListener);
 
 		stockPlugin = pluginManager.getPlugins().stream()
 			.filter(p -> STOCK_PLUGIN_NAME.equals(p.getName()))
@@ -116,6 +124,7 @@ public class CombatInfoPlugin extends Plugin
 	{
 		overlayManager.remove(panelOverlay);
 		overlayManager.remove(overheadOverlay);
+		hooks.unregisterRenderableDrawListener(drawListener);
 
 		stopProbe();
 
@@ -304,6 +313,28 @@ public class CombatInfoPlugin extends Plugin
 		return hudNpcId != -1
 			&& npc.getComposition() != null
 			&& hudNpcId == npc.getComposition().getId();
+	}
+
+	/**
+	 * Suppresses the game's own 2D layer over the current target.
+	 *
+	 * The engine offers no way to hide the health bar by itself — drawingUI
+	 * covers the whole overhead layer, so this also removes the target's name,
+	 * hitsplats and prayer icons. Hence off by default and stated plainly in the
+	 * setting's description rather than discovered mid-fight.
+	 *
+	 * Called for every renderable every frame, so it stays a couple of
+	 * reference comparisons and reads the snapshot once.
+	 */
+	private boolean shouldDraw(Renderable renderable, boolean drawingUI)
+	{
+		if (!drawingUI || !config.hideGameHealthBar())
+		{
+			return true;
+		}
+
+		final Readout current = readout;
+		return current == null || renderable != current.getActor();
 	}
 
 	/** True when the stock plugin is drawing its own panel in the same corner. */

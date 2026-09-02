@@ -29,7 +29,7 @@ class CombatInfoOverheadOverlay extends Overlay
 	 * The bar's position is not exposed by the API, so this is a fixed clearance
 	 * that puts the text above it; the offset setting fine-tunes from there.
 	 */
-	private static final int BAR_CLEARANCE = 18;
+	private static final int BAR_CLEARANCE = 34;
 
 	private final CombatInfoPlugin plugin;
 	private final CombatInfoConfig config;

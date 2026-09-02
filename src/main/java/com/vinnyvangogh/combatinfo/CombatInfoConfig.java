@@ -157,6 +157,22 @@ public interface CombatInfoConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "hideGameHealthBar",
+		name = "Hide game's health bar",
+		description =
+			"Hide the game's own health bar over your current target, so only this plugin's readout "
+				+ "shows. The game offers no way to hide the bar alone: this hides the target's entire "
+				+ "2D layer, which also removes their name, hitsplats and overhead prayer icons. That "
+				+ "is a bad trade in PvP, which is why it is off by default.",
+		section = displaySection,
+		position = 9
+	)
+	default boolean hideGameHealthBar()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 		keyName = "showForNpcs",
 		name = "NPC targets",
 		description = "Show the readout when fighting NPCs.",
