@@ -92,7 +92,7 @@ public interface CombatInfoConfig extends Config
 		name = "Colour by health",
 		description = "Fade the text from green to red as the target loses health.",
 		section = displaySection,
-		position = 4
+		position = 8
 	)
 	default boolean colourGradient()
 	{
@@ -104,7 +104,7 @@ public interface CombatInfoConfig extends Config
 		name = "Overhead position",
 		description = "Where above the target the text sits. Large NPCs often read better on Bottom.",
 		section = displaySection,
-		position = 7
+		position = 5
 	)
 	default OverheadPosition overheadPosition()
 	{
@@ -117,7 +117,7 @@ public interface CombatInfoConfig extends Config
 		name = "Colour at full",
 		description = "Colour of the readout at full health, used when Colour by health is on.",
 		section = displaySection,
-		position = 41
+		position = 9
 	)
 	default Color healthFullColour()
 	{
@@ -130,7 +130,7 @@ public interface CombatInfoConfig extends Config
 		name = "Colour at half",
 		description = "Colour the readout passes through at half health.",
 		section = displaySection,
-		position = 42
+		position = 10
 	)
 	default Color healthMidColour()
 	{
@@ -143,7 +143,7 @@ public interface CombatInfoConfig extends Config
 		name = "Colour at empty",
 		description = "Colour of the readout as health approaches zero.",
 		section = displaySection,
-		position = 43
+		position = 11
 	)
 	default Color healthLowColour()
 	{
@@ -152,14 +152,14 @@ public interface CombatInfoConfig extends Config
 
 	@ConfigItem(
 		keyName = "overheadStyle",
-		name = "Overhead style",
+		name = "Style",
 		description =
 			"Bar behind text draws a health bar sized to fit the text, carrying the colour so the text "
 				+ "can stay white. Text above health bar lifts the text clear of the game's own bar "
 				+ "instead. Text only draws coloured text where it falls, which will overlap the "
 				+ "game's bar.",
 		section = displaySection,
-		position = 5
+		position = 4
 	)
 	default OverheadStyle overheadStyle()
 	{
@@ -175,7 +175,7 @@ public interface CombatInfoConfig extends Config
 				+ "the game's own health bar does not show through it. Lower the alpha to let it "
 				+ "show again.",
 		section = displaySection,
-		position = 6
+		position = 7
 	)
 	default Color barBackground()
 	{
@@ -188,7 +188,7 @@ public interface CombatInfoConfig extends Config
 		name = "Overhead offset",
 		description = "Extra height in pixels, applied after the position above.",
 		section = displaySection,
-		position = 8
+		position = 6
 	)
 	default int overheadOffset()
 	{
@@ -204,7 +204,7 @@ public interface CombatInfoConfig extends Config
 				+ "2D layer, which also removes their name, hitsplats and overhead prayer icons. That "
 				+ "is a bad trade in PvP, which is why it is off by default.",
 		section = displaySection,
-		position = 9
+		position = 12
 	)
 	default boolean hideGameHealthBar()
 	{
