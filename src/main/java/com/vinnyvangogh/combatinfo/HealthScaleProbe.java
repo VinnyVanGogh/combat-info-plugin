@@ -56,7 +56,7 @@ import net.runelite.client.util.Text;
 class HealthScaleProbe
 {
 	private static final String CSV_HEADER =
-		"tick,actorType,name,combatLevel,healthScale,healthRatio,npcId,knownMax,"
+		"epochMs,tick,role,actorType,name,combatLevel,healthScale,healthRatio,npcId,knownMax,"
 			+ "trueHp,recoveredMin,recoveredMax,recoveredMid,midpointHit";
 
 	/** Guard against an unattended client filling the disk. */
@@ -75,9 +75,6 @@ class HealthScaleProbe
 
 	private final ConcurrentLinkedQueue<String> pending = new ConcurrentLinkedQueue<>();
 
-	/** Dedupe key per distinct observation, so we log transitions and not ticks. */
-	private final Set<String> seen = ConcurrentHashMap.newKeySet();
-
 	/** The headline result: which health scales the server actually sends. */
 	private final Set<String> scalesSeen = ConcurrentHashMap.newKeySet();
 
@@ -86,10 +83,16 @@ class HealthScaleProbe
 	private int rowCount;
 	private Actor opponent;
 	private int ticks;
+	private long instanceId;
 
 	void startUp()
 	{
-		csvFile = new File(new File(RuneLite.RUNELITE_DIR, "combat-info"), "health-scale-probe.csv");
+		// Two clients logged into two accounts must not append to one file. The
+		// launch time distinguishes them, and the correlation is done on the
+		// wall clock in each row rather than on which file a row landed in.
+		instanceId = System.currentTimeMillis();
+		csvFile = new File(new File(RuneLite.RUNELITE_DIR, "combat-info"),
+			"health-scale-probe-" + instanceId + ".csv");
 		rowCount = 0;
 		ticks = 0;
 		// Write the header eagerly, so an absent file means startUp never ran
@@ -109,7 +112,6 @@ class HealthScaleProbe
 		}
 
 		opponent = null;
-		seen.clear();
 		scalesSeen.clear();
 
 		// shutDown() runs on the client thread, and flush() touches the disk.
@@ -150,8 +152,8 @@ class HealthScaleProbe
 		// The local player is the most valuable sample available: it is the one
 		// actor whose true max health the person running this already knows, so
 		// it tests maxHealth <= healthScale directly rather than by inference.
-		record(client.getLocalPlayer());
-		record(opponent);
+		record(client.getLocalPlayer(), "SELF");
+		record(opponent, "OPPONENT");
 
 		// Heartbeat. The first version of this probe logged only on a successful
 		// sample, which made "produced nothing" indistinguishable from "never
@@ -191,7 +193,7 @@ class HealthScaleProbe
 		}
 	}
 
-	private void record(Actor actor)
+	private void record(Actor actor, String role)
 	{
 		if (actor == null || rowCount >= MAX_ROWS)
 		{
@@ -217,12 +219,6 @@ class HealthScaleProbe
 		// belongs in the dedupe key so regeneration ticks are recorded rather
 		// than folded into the previous sample.
 		final int trueHp = isSelf ? client.getBoostedSkillLevel(Skill.HITPOINTS) : -1;
-
-		final String key = type + '|' + name + '|' + healthScale + '|' + healthRatio + '|' + trueHp;
-		if (!seen.add(key))
-		{
-			return;
-		}
 
 		String npcId = "";
 		Integer knownMax = null;
@@ -270,7 +266,9 @@ class HealthScaleProbe
 		}
 
 		pending.add(String.join(",",
+			Long.toString(System.currentTimeMillis()),
 			Integer.toString(client.getTickCount()),
+			role,
 			type,
 			csv(name),
 			Integer.toString(combatLevel),

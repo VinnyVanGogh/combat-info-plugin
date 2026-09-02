@@ -54,6 +54,14 @@ tasks.register('run', JavaExec) {
 		jvmArgs "--add-exports", "java.desktop/com.apple.eawt=ALL-UNNAMED"
 	}
 
+	// RuneLite derives RUNELITE_DIR from user.home, so overriding it gives a
+	// second client its own .runelite: separate credentials, config and probe
+	// output. Needed to run two accounts at once for the cross-account health
+	// correlation. Usage: ./gradlew run -PaltHome=/path/to/alt-home
+	if (project.hasProperty('altHome')) {
+		jvmArgs "-Duser.home=${project.altHome}"
+	}
+
 	args "--developer-mode", "--debug"
 }
 
