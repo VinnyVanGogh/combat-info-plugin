@@ -186,13 +186,6 @@ the case that broke every earlier iteration of this overlay.
 | Bar background | Opaque black | Fill behind the health bar. Lower the alpha to let the game's bar show through |
 | Overhead position | Top | Top, Middle or Bottom relative to the target |
 | Overhead offset | 0 | Extra height in pixels, ±200 |
-| Hide game's health bar | **Off** | See the warning below |
-
-> **⚠️ Hide game's health bar.** The game exposes no way to hide the health bar
-> alone. This suppresses the target's entire 2D layer, which also removes their
-> **name, hitsplats and overhead prayer icons**. That is a poor trade in PvP.
-> It is off by default and this is the only setting here that can cost you
-> information.
 
 ### Targets
 
