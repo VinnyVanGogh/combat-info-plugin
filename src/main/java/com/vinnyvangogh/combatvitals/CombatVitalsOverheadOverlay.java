@@ -1,4 +1,4 @@
-package com.vinnyvangogh.combatinfo;
+package com.vinnyvangogh.combatvitals;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -16,7 +16,7 @@ import net.runelite.client.ui.overlay.OverlayUtil;
  * Draws the readout over the target itself, which is the thing the stock
  * plugin cannot do.
  */
-class CombatInfoOverheadOverlay extends Overlay
+class CombatVitalsOverheadOverlay extends Overlay
 {
 	/** Space between the text and the edge of the bar behind it. */
 	private static final int PAD_X = 4;
@@ -31,11 +31,11 @@ class CombatInfoOverheadOverlay extends Overlay
 	 */
 	private static final int BAR_CLEARANCE = 34;
 
-	private final CombatInfoPlugin plugin;
-	private final CombatInfoConfig config;
+	private final CombatVitalsPlugin plugin;
+	private final CombatVitalsConfig config;
 
 	@Inject
-	CombatInfoOverheadOverlay(CombatInfoPlugin plugin, CombatInfoConfig config)
+	CombatVitalsOverheadOverlay(CombatVitalsPlugin plugin, CombatVitalsConfig config)
 	{
 		this.plugin = plugin;
 		this.config = config;
@@ -52,7 +52,7 @@ class CombatInfoOverheadOverlay extends Overlay
 			return null;
 		}
 
-		final CombatInfoPlugin.Readout opponent = plugin.getReadout();
+		final CombatVitalsPlugin.Readout opponent = plugin.getReadout();
 		if (opponent != null && (opponent.isNpc() || config.overheadForPlayers()))
 		{
 			draw(graphics, opponent);
@@ -65,7 +65,7 @@ class CombatInfoOverheadOverlay extends Overlay
 		return null;
 	}
 
-	private void draw(Graphics2D graphics, CombatInfoPlugin.Readout readout)
+	private void draw(Graphics2D graphics, CombatVitalsPlugin.Readout readout)
 	{
 		if (readout == null)
 		{

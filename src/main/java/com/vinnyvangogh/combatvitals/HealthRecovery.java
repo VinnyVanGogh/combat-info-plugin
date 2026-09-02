@@ -1,4 +1,4 @@
-package com.vinnyvangogh.combatinfo;
+package com.vinnyvangogh.combatvitals;
 
 /**
  * Inverts the server's health-bar quantisation.

@@ -1,4 +1,4 @@
-package com.vinnyvangogh.combatinfo;
+package com.vinnyvangogh.combatvitals;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

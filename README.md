@@ -1,4 +1,4 @@
-# Combat Info
+# Combat Vitals
 
 Opponent health for NPC and player targets, drawn over the target instead of
 only in a corner panel, and honest about what the number is worth.
@@ -158,7 +158,7 @@ the case that broke every earlier iteration of this overlay.
 
 ## How it compares to Opponent Information
 
-| | Opponent Information | Combat Info |
+| | Opponent Information | Combat Vitals |
 |---|---|---|
 | Corner panel | Yes | Yes |
 | Drawn at the target | No | Yes |
@@ -206,7 +206,7 @@ the case that broke every earlier iteration of this overlay.
 | Stat comparison panel | Off | Compare your combat stats to a player opponent's, in the panel |
 
 <p align="center">
-  <img src="docs/images/settings.png" alt="The Combat Info settings panel" width="300">
+  <img src="docs/images/settings.png" alt="The Combat Vitals settings panel" width="300">
 </p>
 
 ### Advanced

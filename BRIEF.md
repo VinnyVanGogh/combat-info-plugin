@@ -1,4 +1,4 @@
-# Combat Info, Research & Build Brief
+# Combat Vitals, Research & Build Brief
 
 A RuneLite Plugin Hub plugin. Standalone replacement for the stock **Opponent
 Information** plugin, with a better overlay and overhead rendering, covering both
@@ -147,7 +147,7 @@ yourself, and must not try. This phase is instrumentation you write and the
 ### Phase 0.5 findings (completed 2026-08-26)
 
 Measured with HealthScaleProbe against live NPCs and the local player.
-Raw data: `.runelite/combat-info/health-scale-probe.csv`.
+Raw data: `.runelite/combat-vitals/health-scale-probe.csv`.
 
 **`healthScale` is 30 for every actor observed**. four distinct Guard ids, a
 Man, and a level-105 player. It is a fixed health-bar resolution, not the
@@ -325,7 +325,7 @@ Information:
   panel over it.
 
 The config class is deliberately absent from the skeleton. It arrives here, once
-the option list above survives Phase 0. Config group must be `combat-info`, 
+the option list above survives Phase 0. Config group must be `combat-vitals`, 
 specific, per `AGENTS.md`, and never renamed afterwards without a migration.
 
 ### NPC targets

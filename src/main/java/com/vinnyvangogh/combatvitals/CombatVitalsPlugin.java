@@ -1,4 +1,4 @@
-package com.vinnyvangogh.combatinfo;
+package com.vinnyvangogh.combatvitals;
 
 import com.google.inject.Provides;
 import java.time.Duration;
@@ -34,7 +34,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.Text;
 
 /**
- * Combat Info — a standalone replacement for the stock Opponent Information
+ * Combat Vitals — a standalone replacement for the stock Opponent Information
  * plugin, with overhead rendering.
  *
  * The readout is rebuilt once per game tick and published as an immutable
@@ -44,11 +44,11 @@ import net.runelite.client.util.Text;
  */
 @Slf4j
 @PluginDescriptor(
-	name = "Combat Info",
-	description = "Opponent health for NPC and player targets, with overhead rendering and honest uncertainty",
-	tags = {"combat", "overlay", "opponent", "health", "hitpoints", "pvp", "pvm"}
+	name = "Combat Vitals",
+	description = "Health for your target and for you, drawn over the target or in a panel",
+	tags = {"combat", "vitals", "health", "hitpoints", "hp", "overlay", "overhead", "opponent", "pvp", "pvm"}
 )
-public class CombatInfoPlugin extends Plugin
+public class CombatVitalsPlugin extends Plugin
 {
 	private static final String STOCK_PLUGIN_NAME = "Opponent Information";
 
@@ -56,7 +56,7 @@ public class CombatInfoPlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private CombatInfoConfig config;
+	private CombatVitalsConfig config;
 
 	@Inject
 	private OverlayManager overlayManager;
@@ -71,10 +71,10 @@ public class CombatInfoPlugin extends Plugin
 	private PluginManager pluginManager;
 
 	@Inject
-	private CombatInfoPanelOverlay panelOverlay;
+	private CombatVitalsPanelOverlay panelOverlay;
 
 	@Inject
-	private CombatInfoOverheadOverlay overheadOverlay;
+	private CombatVitalsOverheadOverlay overheadOverlay;
 
 	@Inject
 	private Hooks hooks;
@@ -95,9 +95,9 @@ public class CombatInfoPlugin extends Plugin
 	private Plugin stockPlugin;
 
 	@Provides
-	CombatInfoConfig provideConfig(ConfigManager configManager)
+	CombatVitalsConfig provideConfig(ConfigManager configManager)
 	{
-		return configManager.getConfig(CombatInfoConfig.class);
+		return configManager.getConfig(CombatVitalsConfig.class);
 	}
 
 	@Override

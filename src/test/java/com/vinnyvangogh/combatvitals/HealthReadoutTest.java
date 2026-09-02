@@ -1,4 +1,4 @@
-package com.vinnyvangogh.combatinfo;
+package com.vinnyvangogh.combatvitals;
 
 import java.awt.Color;
 import static org.junit.Assert.assertEquals;

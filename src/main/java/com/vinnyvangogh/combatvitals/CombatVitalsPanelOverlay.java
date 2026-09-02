@@ -1,4 +1,4 @@
-package com.vinnyvangogh.combatinfo;
+package com.vinnyvangogh.combatvitals;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -21,7 +21,7 @@ import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
  * The corner panel, equivalent to the stock plugin's. It reads the tick
  * snapshot and does no work of its own beyond laying out text.
  */
-class CombatInfoPanelOverlay extends OverlayPanel
+class CombatVitalsPanelOverlay extends OverlayPanel
 {
 	/** The same seven the base client compares, in the same order. */
 	private static final HiscoreSkill[] COMBAT_SKILLS = {
@@ -47,12 +47,12 @@ class CombatInfoPanelOverlay extends OverlayPanel
 	private static final Color AHEAD = new Color(0, 200, 83);
 	private static final Color BEHIND = new Color(220, 60, 60);
 
-	private final CombatInfoPlugin plugin;
-	private final CombatInfoConfig config;
+	private final CombatVitalsPlugin plugin;
+	private final CombatVitalsConfig config;
 	private final Client client;
 
 	@Inject
-	CombatInfoPanelOverlay(CombatInfoPlugin plugin, CombatInfoConfig config, Client client)
+	CombatVitalsPanelOverlay(CombatVitalsPlugin plugin, CombatVitalsConfig config, Client client)
 	{
 		super(plugin);
 		this.plugin = plugin;
@@ -62,7 +62,7 @@ class CombatInfoPanelOverlay extends OverlayPanel
 		setPosition(OverlayPosition.TOP_LEFT);
 		setPriority(PRIORITY_HIGH);
 		panelComponent.setBorder(new Rectangle(2, 2, 2, 2));
-		addMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Combat Info overlay");
+		addMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Combat Vitals overlay");
 	}
 
 	@Override
@@ -80,7 +80,7 @@ class CombatInfoPanelOverlay extends OverlayPanel
 			return null;
 		}
 
-		final CombatInfoPlugin.Readout readout = plugin.getReadout();
+		final CombatVitalsPlugin.Readout readout = plugin.getReadout();
 		if (readout == null)
 		{
 			return null;
@@ -118,7 +118,7 @@ class CombatInfoPanelOverlay extends OverlayPanel
 	 * for the hitpoints lookup. No second request: the same cache entry answers
 	 * both, which is why this costs nothing beyond the panel space.
 	 */
-	private void addStatComparison(CombatInfoPlugin.Readout readout)
+	private void addStatComparison(CombatVitalsPlugin.Readout readout)
 	{
 		if (!config.showStatComparison())
 		{

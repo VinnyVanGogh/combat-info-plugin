@@ -1,4 +1,4 @@
-package com.vinnyvangogh.combatinfo;
+package com.vinnyvangogh.combatvitals;
 
 import java.awt.Color;
 import net.runelite.client.config.Alpha;
@@ -9,13 +9,13 @@ import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Range;
 
 /**
- * Config group is "combat-info" and must never be renamed without a migration —
+ * Config group is "combat-vitals" and must never be renamed without a migration —
  * renaming silently resets everyone's saved settings.
  */
-@ConfigGroup(CombatInfoConfig.GROUP)
-public interface CombatInfoConfig extends Config
+@ConfigGroup(CombatVitalsConfig.GROUP)
+public interface CombatVitalsConfig extends Config
 {
-	String GROUP = "combat-info";
+	String GROUP = "combat-vitals";
 
 	@ConfigSection(
 		name = "Display",
