@@ -5,7 +5,12 @@ only in a corner panel — and honest about what the number is worth.
 
 A standalone replacement for RuneLite's built-in **Opponent Information**.
 
-<!-- Screenshots go in docs/images/. See "Screenshots" below for what to capture. -->
+<p align="center">
+  <img src="docs/images/hero.png" alt="Overhead health readout on a player target, showing 30 / 91 (33%)" width="640">
+</p>
+
+<p align="center"><em>A player target at 33%. The number comes from the hiscores;
+the bar is sized to the text so the two never collide.</em></p>
 
 ---
 
@@ -14,6 +19,7 @@ A standalone replacement for RuneLite's built-in **Opponent Information**.
 - [Why this exists](#why-this-exists)
 - [Features](#features)
 - [About that number](#about-that-number)
+- [Watching it work](#watching-it-work)
 - [How it compares to Opponent Information](#how-it-compares-to-opponent-information)
 - [Settings](#settings)
 - [Compatibility](#compatibility)
@@ -121,6 +127,19 @@ trust it. That is a property of the game's networking, not of any plugin.
 Method, numbers and the cross-account analysis script are in
 [BRIEF.md](BRIEF.md) under Phase 0.5 and [`docs/phase-0.5/`](docs/phase-0.5/).
 The raw captures are deliberately not committed: they name real accounts.
+
+### Watching it work
+
+The same fight, as the target drops. The colour ramp is interpolated, so it
+slides rather than snapping between bands:
+
+| 67% | 33% | 23% |
+|:---:|:---:|:---:|
+| <img src="docs/images/pvp-context.png" alt="Player target at 67% health in the wilderness" width="260"> | <img src="docs/images/hero.png" alt="Player target at 33% health" width="260"> | <img src="docs/images/low-health.png" alt="Player target at 23% health, bar orange" width="260"> |
+
+Real PvP, not a test dummy — skulled, in the wilderness, hitsplats landing. The
+readout stays legible over a moving target against cave-floor terrain, which is
+the case that broke every earlier iteration of this overlay.
 
 ## How it compares to Opponent Information
 
@@ -261,12 +280,6 @@ Middle or Bottom for that fight.
 
 **Nothing shows on a boss.** The game's own health bar is probably up, and this
 plugin defers to it. Turn off *Hide behind boss HP bar* to override.
-
-## Screenshots
-
-Contributions welcome — the ones worth having are the corner panel beside the
-overhead readout in the same fight, a low-health target showing the colour ramp,
-and a player target with the number resolved from the hiscores.
 
 ## Building from source
 
