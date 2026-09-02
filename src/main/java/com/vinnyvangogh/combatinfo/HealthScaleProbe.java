@@ -56,8 +56,9 @@ import net.runelite.client.util.Text;
 class HealthScaleProbe
 {
 	private static final String CSV_HEADER =
-		"epochMs,tick,role,actorType,name,combatLevel,healthScale,healthRatio,npcId,knownMax,"
-			+ "trueHp,recoveredMin,recoveredMax,recoveredMid,midpointHit";
+		"epochMs,instanceId,observer,world,tick,role,actorType,name,combatLevel,"
+			+ "healthScale,healthRatio,npcId,knownMax,trueHp,"
+			+ "recoveredMin,recoveredMax,recoveredMid,midpointHit";
 
 	/** Guard against an unattended client filling the disk. */
 	private static final int MAX_ROWS = 20_000;
@@ -214,6 +215,7 @@ class HealthScaleProbe
 
 		final boolean isSelf = actor == client.getLocalPlayer();
 
+
 		// Only the local player's true health is knowable — the hitpoints orb.
 		// It is the ground truth the recovered range is checked against, and it
 		// belongs in the dedupe key so regeneration ticks are recorded rather
@@ -265,8 +267,19 @@ class HealthScaleProbe
 			}
 		}
 
+		// observer is which account produced the row, so a file identifies
+		// itself and two of them can be joined without tracking which client
+		// wrote which. world guards against correlating rows from two accounts
+		// that were never actually in the same place.
+		final Player self = client.getLocalPlayer();
+		final String observer = self == null || self.getName() == null
+			? "?" : Text.removeTags(self.getName());
+
 		pending.add(String.join(",",
 			Long.toString(System.currentTimeMillis()),
+			Long.toString(instanceId),
+			csv(observer),
+			Integer.toString(client.getWorld()),
 			Integer.toString(client.getTickCount()),
 			role,
 			type,
