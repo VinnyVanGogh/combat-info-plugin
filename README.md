@@ -56,6 +56,21 @@ Three styles:
 **Works on player targets**, not just NPCs. No other Plugin Hub plugin draws
 overhead health for players.
 
+**Both sides of the fight, in one visual language.** Your own health can be
+drawn the same way as your opponent's. Other plugins can show your health, but
+none of them will match this readout — you would get yours in one style and
+theirs in another, side by side.
+
+<p align="center">
+  <img src="docs/images/both-sides.png" alt="Own health at 64/78 and opponent at 44/73, drawn in the same style" width="720">
+</p>
+
+<p align="center"><em>Yours on the left, theirs on the right, identical styling.
+Your own number comes from the hitpoints orb, so it is exact — never recovered.</em></p>
+
+**Stat comparison** against a player opponent, from the same cached hiscores
+result the health lookup already fetched. No second request.
+
 **Vertical placement** of Top, Middle or Bottom plus a pixel offset, because a
 large NPC's name plate and the top-of-screen boss bar both crowd the space above
 their head, and the right answer differs per monster.
@@ -152,11 +167,8 @@ the case that broke every earlier iteration of this overlay.
 | Opponent timeout | Fixed 5s | 1–60s |
 | Player hiscores lookup | Always on, no switch | On by default, switchable |
 | Documents its own accuracy | No | Yes |
-| Combat stat comparison panel | Yes | Not yet — see below |
-
-**Not yet ported:** the stat comparison panel. If you rely on it, keep both
-plugins enabled — this one hides its panel automatically so they will not
-collide.
+| Combat stat comparison panel | Yes | Yes |
+| Shows your own health too | No | Yes |
 
 ## Settings
 
@@ -190,6 +202,12 @@ collide.
 | Player targets | On | Show the readout when fighting players |
 | Draw over players | On | Off keeps players in the panel only |
 | Look up player hitpoints | On | Hiscores lookup for the opponent's max hitpoints |
+| Show your own health | Off | Draw your health over your character while engaged. Exact, from the orb |
+| Stat comparison panel | Off | Compare your combat stats to a player opponent's, in the panel |
+
+<p align="center">
+  <img src="docs/images/settings.png" alt="The Combat Info settings panel" width="300">
+</p>
 
 ### Advanced
 
@@ -247,6 +265,12 @@ to a single value only when `maxHealth <= healthScale`.
 Maximum health comes from the NPC cache for monsters, and from the hiscores for
 players. Without it, only the fraction of the bar is knowable, which is why an
 unranked player degrades to a percentage rather than a wrong number.
+
+**Your own health skips all of this.** The client knows it exactly, from the
+hitpoints orb, so it is never put through the recovery — printing a guessed 29
+where the truth is a known 30 would be absurd, and would undermine the only
+claim this plugin makes. The readout is exact for you, exact for small NPCs, and
+banded only where the data genuinely is.
 
 The recovery is pure arithmetic with no client dependency, and is covered by
 unit tests including exhaustive checks that the recovered range always contains
