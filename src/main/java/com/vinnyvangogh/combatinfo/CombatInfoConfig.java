@@ -111,6 +111,45 @@ public interface CombatInfoConfig extends Config
 		return OverheadPosition.TOP;
 	}
 
+	@Alpha
+	@ConfigItem(
+		keyName = "healthFullColour",
+		name = "Colour at full",
+		description = "Colour of the readout at full health, used when Colour by health is on.",
+		section = displaySection,
+		position = 41
+	)
+	default Color healthFullColour()
+	{
+		return new Color(0, 146, 54, 230);
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "healthMidColour",
+		name = "Colour at half",
+		description = "Colour the readout passes through at half health.",
+		section = displaySection,
+		position = 42
+	)
+	default Color healthMidColour()
+	{
+		return new Color(255, 193, 7, 230);
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "healthLowColour",
+		name = "Colour at empty",
+		description = "Colour of the readout as health approaches zero.",
+		section = displaySection,
+		position = 43
+	)
+	default Color healthLowColour()
+	{
+		return new Color(199, 26, 26, 230);
+	}
+
 	@ConfigItem(
 		keyName = "overheadStyle",
 		name = "Overhead style",

@@ -91,7 +91,7 @@ class CombatInfoOverheadOverlay extends Overlay
 			return null;
 		}
 
-		final Color colour = config.colourGradient() ? HealthReadout.colour(fraction) : Color.WHITE;
+		final Color colour = config.colourGradient() ? gradient(fraction) : Color.WHITE;
 		OverlayUtil.renderTextLocation(graphics, location, text, colour);
 		return null;
 	}
@@ -119,14 +119,18 @@ class CombatInfoOverheadOverlay extends Overlay
 		final int filled = (int) Math.round(width * Math.max(0, Math.min(1, fraction)));
 		if (filled > 0)
 		{
-			graphics.setColor(config.colourGradient()
-				? HealthReadout.colour(fraction)
-				: new Color(0, 146, 54, 230));
+			graphics.setColor(config.colourGradient() ? gradient(fraction) : config.healthFullColour());
 			graphics.fillRect(x, y, filled, height);
 		}
 
 		graphics.setColor(BAR_BORDER);
 		graphics.drawRect(x, y, width, height);
+	}
+
+	private Color gradient(double fraction)
+	{
+		return HealthReadout.colour(fraction,
+			config.healthFullColour(), config.healthMidColour(), config.healthLowColour());
 	}
 
 	/**

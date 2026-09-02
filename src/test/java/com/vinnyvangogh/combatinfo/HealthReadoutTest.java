@@ -1,5 +1,6 @@
 package com.vinnyvangogh.combatinfo;
 
+import java.awt.Color;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
@@ -58,6 +59,15 @@ public class HealthReadoutTest
 		assertEquals(0.5, HealthReadout.fraction(15, 30), 0.0001);
 	}
 
+	private static final Color FULL = new Color(0, 146, 54, 230);
+	private static final Color MID = new Color(255, 193, 7, 230);
+	private static final Color LOW = new Color(199, 26, 26, 230);
+
+	private static Color colour(double fraction)
+	{
+		return HealthReadout.colour(fraction, FULL, MID, LOW);
+	}
+
 	@Test
 	public void colourReadsAsHealthyAtFullAndDangerousAtEmpty()
 	{
@@ -66,18 +76,32 @@ public class HealthReadoutTest
 		// green endpoint's, so "greener as health rises" is not true and is not
 		// what the gradient is for. What must hold is which channel dominates.
 		assertTrue("full health should read green, not red",
-			HealthReadout.colour(1.0).getGreen() > HealthReadout.colour(1.0).getRed());
+			colour(1.0).getGreen() > colour(1.0).getRed());
 		assertTrue("empty health should read red, not green",
-			HealthReadout.colour(0.0).getRed() > HealthReadout.colour(0.0).getGreen());
+			colour(0.0).getRed() > colour(0.0).getGreen());
 		assertTrue("the ends must be visibly different",
-			!HealthReadout.colour(0.0).equals(HealthReadout.colour(1.0)));
+			!colour(0.0).equals(colour(1.0)));
 	}
 
 	@Test
 	public void colourHandlesOutOfRangeInput()
 	{
 		// Never throw over a display detail.
-		HealthReadout.colour(-5);
-		HealthReadout.colour(5);
+		colour(-5);
+		colour(5);
+	}
+
+	@Test
+	public void colourUsesTheStopsItIsGiven()
+	{
+		// The stops are user-configurable, so the ramp must follow them rather
+		// than any palette baked into the class.
+		final Color blue = new Color(0, 0, 255);
+		final Color white = new Color(255, 255, 255);
+		final Color black = new Color(0, 0, 0);
+
+		assertEquals(blue, HealthReadout.colour(1.0, blue, white, black));
+		assertEquals(black, HealthReadout.colour(0.0, blue, white, black));
+		assertEquals(white, HealthReadout.colour(0.5, blue, white, black));
 	}
 }

@@ -70,7 +70,8 @@ class CombatInfoPanelOverlay extends OverlayPanel
 		if (config.colourGradient())
 		{
 			line.leftColor(HealthReadout.colour(
-				HealthReadout.fraction(readout.getRatio(), readout.getScale())));
+				HealthReadout.fraction(readout.getRatio(), readout.getScale()),
+				config.healthFullColour(), config.healthMidColour(), config.healthLowColour()));
 		}
 		panelComponent.getChildren().add(line.build());
 

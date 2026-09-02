@@ -10,10 +10,6 @@ import java.awt.Color;
  */
 final class HealthReadout
 {
-	private static final Color FULL = new Color(0, 146, 54, 230);
-	private static final Color MID = new Color(255, 193, 7, 230);
-	private static final Color LOW = new Color(199, 26, 26, 230);
-
 	private HealthReadout()
 	{
 	}
@@ -71,13 +67,16 @@ final class HealthReadout
 		return Math.min(1.0, (double) ratio / scale);
 	}
 
-	/** Green through amber to red. Interpolated so it moves smoothly as they drop. */
-	static Color colour(double fraction)
+	/**
+	 * Interpolates through three user-chosen stops so the colour moves smoothly
+	 * as health drops rather than snapping between bands.
+	 */
+	static Color colour(double fraction, Color full, Color mid, Color low)
 	{
 		final double f = Math.max(0, Math.min(1, fraction));
 		return f >= 0.5
-			? blend(MID, FULL, (f - 0.5) * 2)
-			: blend(LOW, MID, f * 2);
+			? blend(mid, full, (f - 0.5) * 2)
+			: blend(low, mid, f * 2);
 	}
 
 	private static Color blend(Color from, Color to, double t)
