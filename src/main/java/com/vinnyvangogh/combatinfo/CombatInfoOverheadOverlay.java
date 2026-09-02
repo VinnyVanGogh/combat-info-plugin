@@ -52,33 +52,43 @@ class CombatInfoOverheadOverlay extends Overlay
 			return null;
 		}
 
-		final CombatInfoPlugin.Readout readout = plugin.getReadout();
-		if (readout == null)
+		final CombatInfoPlugin.Readout opponent = plugin.getReadout();
+		if (opponent != null && (opponent.isNpc() || config.overheadForPlayers()))
 		{
-			return null;
+			draw(graphics, opponent);
 		}
 
-		if (!readout.isNpc() && !config.overheadForPlayers())
+		// Both sides in one visual language. Getting your own health from some
+		// other plugin would render it in a different style beside your
+		// opponent's, which is the main reason this belongs here.
+		draw(graphics, plugin.getSelfReadout());
+		return null;
+	}
+
+	private void draw(Graphics2D graphics, CombatInfoPlugin.Readout readout)
+	{
+		if (readout == null)
 		{
-			return null;
+			return;
 		}
 
 		final String text = HealthReadout.text(readout.getRange(), readout.getMaxHealth(),
-			readout.getRatio(), readout.getScale(), config.displayMode(), config.percentageDecimals());
+			readout.getRatio(), readout.getScale(), config.displayMode(), config.percentageDecimals(),
+			readout.getExactHealth());
 		if (text == null)
 		{
-			return null;
+			return;
 		}
 
 		final Actor actor = readout.getActor();
 		final Point location = actor.getCanvasTextLocation(graphics, text, zOffset(actor));
-
 		if (location == null)
 		{
-			return null;
+			return;
 		}
 
-		final double fraction = HealthReadout.fraction(readout.getRatio(), readout.getScale());
+		final double fraction = HealthReadout.fraction(readout.getRatio(), readout.getScale(),
+			readout.getExactHealth(), readout.getMaxHealth());
 
 		if (config.overheadStyle() == OverheadStyle.BAR)
 		{
@@ -88,12 +98,11 @@ class CombatInfoOverheadOverlay extends Overlay
 			// the two fight each other — red text on a green bar is the worst
 			// case and the reason this style exists.
 			OverlayUtil.renderTextLocation(graphics, location, text, Color.WHITE);
-			return null;
+			return;
 		}
 
 		final Color colour = config.colourGradient() ? gradient(fraction) : Color.WHITE;
 		OverlayUtil.renderTextLocation(graphics, location, text, colour);
-		return null;
 	}
 
 	/**

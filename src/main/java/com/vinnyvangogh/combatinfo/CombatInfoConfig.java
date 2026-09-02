@@ -212,6 +212,20 @@ public interface CombatInfoConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "showOwnHealth",
+		name = "Show your own health",
+		description =
+			"Draw your own health over your character while you are engaged, in the same style as your "
+				+ "opponent's. Taken from the hitpoints orb, so it is exact rather than recovered.",
+		section = targetSection,
+		position = 4
+	)
+	default boolean showOwnHealth()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 		keyName = "showForNpcs",
 		name = "NPC targets",
 		description = "Show the readout when fighting NPCs.",
@@ -264,6 +278,20 @@ public interface CombatInfoConfig extends Config
 	}
 
 	@Range(min = 1, max = 60)
+	@ConfigItem(
+		keyName = "showStatComparison",
+		name = "Stat comparison panel",
+		description =
+			"Compare your combat stats against a player opponent's, in the panel. Reads the same "
+				+ "cached hiscores result as the hitpoints lookup, so it costs no extra request.",
+		section = targetSection,
+		position = 5
+	)
+	default boolean showStatComparison()
+	{
+		return false;
+	}
+
 	@ConfigItem(
 		keyName = "opponentTimeout",
 		name = "Opponent timeout (s)",

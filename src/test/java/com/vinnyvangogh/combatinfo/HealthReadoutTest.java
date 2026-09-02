@@ -17,28 +17,28 @@ public class HealthReadoutTest
 	public void showsHitpoints()
 	{
 		assertEquals("15 / 22",
-			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.HITPOINTS, false));
+			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.HITPOINTS, false, -1));
 	}
 
 	@Test
 	public void showsPercentage()
 	{
 		assertEquals("67%",
-			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.PERCENTAGE, false));
+			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.PERCENTAGE, false, -1));
 	}
 
 	@Test
 	public void showsBoth()
 	{
 		assertEquals("15 / 22 (67%)",
-			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.BOTH, false));
+			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.BOTH, false, -1));
 	}
 
 	@Test
 	public void showsDecimalPercentage()
 	{
 		assertEquals("66.7%",
-			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.PERCENTAGE, true));
+			HealthReadout.text(guard(), 22, 20, 30, DisplayMode.PERCENTAGE, true, -1));
 	}
 
 	@Test
@@ -47,16 +47,45 @@ public class HealthReadoutTest
 		// An unranked player, or the lookup turned off. Showing the fraction is
 		// honest; inventing a hitpoints value would not be.
 		assertEquals("67%",
-			HealthReadout.text(null, -1, 20, 30, DisplayMode.HITPOINTS, false));
+			HealthReadout.text(null, -1, 20, 30, DisplayMode.HITPOINTS, false, -1));
+	}
+
+	@Test
+	public void anExactValueIsShownAsItselfNotRecovered()
+	{
+		// Your own health is known, so it must be printed rather than guessed.
+		// The recovered range for this ratio is 28-30 with midpoint 29; if the
+		// exact value ever loses to the midpoint, the readout has started
+		// inventing numbers it did not need to.
+		assertEquals("30 / 88",
+			HealthReadout.text(HealthRecovery.recover(10, 30, 88), 88, 10, 30,
+				DisplayMode.HITPOINTS, false, 30));
+	}
+
+	@Test
+	public void anExactValueDrivesThePercentageToo()
+	{
+		assertEquals("34%",
+			HealthReadout.text(null, 88, -1, -1, DisplayMode.PERCENTAGE, false, 30));
+	}
+
+	@Test
+	public void exactFractionIgnoresTheBar()
+	{
+		// scale and ratio are absent for a self readout; the orb supplies both
+		// numbers and the bar is not consulted at all.
+		assertEquals(0.5, HealthReadout.fraction(-1, -1, 44, 88), 0.0001);
+		assertEquals(1.0, HealthReadout.fraction(-1, -1, 99, 99), 0.0001);
+		assertEquals(0.0, HealthReadout.fraction(-1, -1, 0, 99), 0.0001);
 	}
 
 	@Test
 	public void fractionIsClampedAndSafe()
 	{
-		assertEquals(0.0, HealthReadout.fraction(0, 30), 0.0001);
-		assertEquals(1.0, HealthReadout.fraction(30, 30), 0.0001);
-		assertEquals(0.0, HealthReadout.fraction(10, 0), 0.0001);
-		assertEquals(0.5, HealthReadout.fraction(15, 30), 0.0001);
+		assertEquals(0.0, HealthReadout.fraction(0, 30, -1, -1), 0.0001);
+		assertEquals(1.0, HealthReadout.fraction(30, 30, -1, -1), 0.0001);
+		assertEquals(0.0, HealthReadout.fraction(10, 0, -1, -1), 0.0001);
+		assertEquals(0.5, HealthReadout.fraction(15, 30, -1, -1), 0.0001);
 	}
 
 	private static final Color FULL = new Color(0, 146, 54, 230);

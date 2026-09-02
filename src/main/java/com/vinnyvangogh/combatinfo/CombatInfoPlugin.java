@@ -13,6 +13,7 @@ import net.runelite.api.NPCComposition;
 import net.runelite.api.ParamID;
 import net.runelite.api.Player;
 import net.runelite.api.Renderable;
+import net.runelite.api.Skill;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
@@ -84,6 +85,10 @@ public class CombatInfoPlugin extends Plugin
 	@Getter
 	private volatile Readout readout;
 
+	/** Your own health. Exact, because the client knows it — never recovered. */
+	@Getter
+	private volatile Readout selfReadout;
+
 	private Actor opponent;
 	private Instant interactionEnded;
 	private HiscoreEndpoint hiscoreEndpoint = HiscoreEndpoint.NORMAL;
@@ -116,6 +121,7 @@ public class CombatInfoPlugin extends Plugin
 		hooks.unregisterRenderableDrawListener(drawListener);
 
 		readout = null;
+		selfReadout = null;
 		opponent = null;
 		interactionEnded = null;
 		stockPlugin = null;
@@ -134,6 +140,7 @@ public class CombatInfoPlugin extends Plugin
 				opponent = null;
 				interactionEnded = null;
 				readout = null;
+				selfReadout = null;
 				break;
 			default:
 				break;
@@ -169,6 +176,7 @@ public class CombatInfoPlugin extends Plugin
 	{
 		expireOpponent();
 		readout = buildReadout();
+		selfReadout = buildSelfReadout();
 	}
 
 	private void expireOpponent()
@@ -222,6 +230,7 @@ public class CombatInfoPlugin extends Plugin
 
 		String name = Text.removeTags(actor.getName());
 		int maxHealth = -1;
+		HiscoreResult hiscore = null;
 
 		if (npc)
 		{
@@ -242,40 +251,67 @@ public class CombatInfoPlugin extends Plugin
 				maxHealth = health;
 			}
 		}
-		else if (config.showPlayerHitpoints())
+		else if (config.showPlayerHitpoints() || config.showStatComparison())
 		{
-			maxHealth = lookupPlayerHitpoints(name);
+			// One lookup per opponent, in direct response to the user engaging
+			// them. HiscoreManager returns null until its cache is warm and
+			// refreshes off the client thread, so this never blocks and never
+			// repeats a request. The comparison reads this same result.
+			hiscore = hiscoreManager.lookupAsync(name, hiscoreEndpoint);
+
+			if (hiscore != null && config.showPlayerHitpoints())
+			{
+				final net.runelite.client.hiscore.Skill hitpoints =
+					hiscore.getSkill(HiscoreSkill.HITPOINTS);
+
+				// An unranked player comes back non-positive. Leaving maxHealth
+				// unknown degrades to a percentage rather than a wrong number.
+				if (hitpoints != null && hitpoints.getLevel() > 0)
+				{
+					maxHealth = hitpoints.getLevel();
+				}
+			}
 		}
 
 		final HealthRecovery.Range range = maxHealth > 0
 			? HealthRecovery.recover(ratio, scale, maxHealth)
 			: null;
 
-		return new Readout(actor, name, ratio, scale, maxHealth, range, npc);
+		return new Readout(actor, name, ratio, scale, maxHealth, range, npc, -1, hiscore);
 	}
 
 	/**
-	 * One lookup per opponent, in direct response to the user engaging them.
-	 * HiscoreManager returns null until its cache is warm and refreshes off the
-	 * client thread, so this never blocks and never repeats a request.
+	 * Your own health, taken from the hitpoints orb rather than inverted from a
+	 * health bar.
+	 *
+	 * The client knows this number exactly. Running it through the recovery
+	 * would print a guess in place of a fact, which would be absurd on its own
+	 * terms and would undermine the one claim this plugin actually makes.
+	 *
+	 * Only while engaged: a permanent readout over your own head is clutter,
+	 * and the orb already covers the out-of-combat case.
 	 */
-	private int lookupPlayerHitpoints(String name)
+	private Readout buildSelfReadout()
 	{
-		final HiscoreResult result = hiscoreManager.lookupAsync(name, hiscoreEndpoint);
-		if (result == null)
+		if (!config.showOwnHealth() || opponent == null)
 		{
-			return -1;
+			return null;
 		}
 
-		final net.runelite.client.hiscore.Skill hitpoints = result.getSkill(HiscoreSkill.HITPOINTS);
-		if (hitpoints == null)
+		final Player self = client.getLocalPlayer();
+		if (self == null || self.getName() == null)
 		{
-			return -1;
+			return null;
 		}
 
-		// An unranked player comes back with a non-positive level. Returning -1
-		// degrades the readout to a percentage rather than inventing a number.
-		return Math.max(hitpoints.getLevel(), -1);
+		final int current = client.getBoostedSkillLevel(Skill.HITPOINTS);
+		final int max = client.getRealSkillLevel(Skill.HITPOINTS);
+		if (max <= 0)
+		{
+			return null;
+		}
+
+		return new Readout(self, Text.removeTags(self.getName()), -1, -1, max, null, false, current, null);
 	}
 
 	/** Mirrors the base client: NPC only, and false for players by definition. */
@@ -333,8 +369,14 @@ public class CombatInfoPlugin extends Plugin
 		private final HealthRecovery.Range range;
 		private final boolean npc;
 
+		/** Known exactly, or -1 when it can only be recovered from the bar. */
+		private final int exactHealth;
+
+		/** The one cached hiscores result, shared by the readout and comparison. */
+		private final HiscoreResult hiscore;
+
 		Readout(Actor actor, String name, int ratio, int scale, int maxHealth,
-			HealthRecovery.Range range, boolean npc)
+			HealthRecovery.Range range, boolean npc, int exactHealth, HiscoreResult hiscore)
 		{
 			this.actor = actor;
 			this.name = name;
@@ -343,6 +385,8 @@ public class CombatInfoPlugin extends Plugin
 			this.maxHealth = maxHealth;
 			this.range = range;
 			this.npc = npc;
+			this.exactHealth = exactHealth;
+			this.hiscore = hiscore;
 		}
 	}
 }

@@ -24,18 +24,20 @@ final class HealthReadout
 	 * @return the text to draw, or null if there is nothing meaningful to say
 	 */
 	static String text(HealthRecovery.Range range, int maxHealth, int ratio, int scale,
-		DisplayMode mode, boolean decimals)
+		DisplayMode mode, boolean decimals, int exactHealth)
 	{
-		final String percent = percentText(ratio, scale, decimals);
+		final String percent = percentText(ratio, scale, decimals, exactHealth, maxHealth);
 
 		// Without a max health there is no hitpoints value to show, only the
 		// fraction of the bar. Falling back is better than showing nothing.
-		if (range == null || maxHealth <= 0)
+		if (maxHealth <= 0 || (range == null && exactHealth < 0))
 		{
 			return percent;
 		}
 
-		final String hp = range.midpoint() + " / " + maxHealth;
+		// An exact value is used as-is. Recovering a number the client already
+		// knows would print a guess in place of a fact.
+		final String hp = (exactHealth >= 0 ? exactHealth : range.midpoint()) + " / " + maxHealth;
 
 		switch (mode)
 		{
@@ -49,17 +51,24 @@ final class HealthReadout
 		}
 	}
 
-	static String percentText(int ratio, int scale, boolean decimals)
+	static String percentText(int ratio, int scale, boolean decimals, int exactHealth, int maxHealth)
 	{
-		final double fraction = fraction(ratio, scale) * 100.0;
+		final double fraction = fraction(ratio, scale, exactHealth, maxHealth) * 100.0;
 		return decimals
 			? String.format("%.1f%%", fraction)
 			: String.format("%d%%", Math.round(fraction));
 	}
 
-	/** Remaining health as 0..1, straight from the bar with no recovery involved. */
-	static double fraction(int ratio, int scale)
+	/**
+	 * Remaining health as 0..1. Uses the exact values when they are known, and
+	 * otherwise the bar's own ratio, which needs no recovery to be a fraction.
+	 */
+	static double fraction(int ratio, int scale, int exactHealth, int maxHealth)
 	{
+		if (exactHealth >= 0 && maxHealth > 0)
+		{
+			return Math.max(0, Math.min(1.0, (double) exactHealth / maxHealth));
+		}
 		if (scale <= 0 || ratio <= 0)
 		{
 			return 0;
