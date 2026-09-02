@@ -191,6 +191,43 @@ This is the plugin's reason to exist, stated concretely: not that stock
 lacks a range, but that stock presents a guess as a measurement at exactly
 the moment a player is deciding whether their next hit kills.
 
+#### Cross-account validation — 2026-09-02
+
+Two accounts, `VinnyWanGogh` (96 max) and `VinnyLanGogh` (99 max), fighting on
+world 316 with a probe on each client. Each side records its own hitpoints from
+the orb and the ratio it observes for the other, joined on wall clock. 386
+scored pairs.
+
+**The recovery is correct.** Not one reading in 386 fell below its recovered
+range. The inverse behaves identically whether the actor being observed is
+yourself or somebody else, which until now was assumed rather than tested.
+
+**But quantisation is the smaller error.** 32 readings (8.3%) sat above their
+range, every one of them because the observed health bar lags healing. Median
+catch-up 1203ms, worst 2405ms — two game ticks typically, four at worst. The
+worst single reading was 19 hitpoints stale.
+
+The direction is the evidence: 32 above, 0 below. A stale-low bar produces
+exactly that asymmetry; a broken inverse would scatter both ways.
+
+So the readout carries two errors of very different size:
+
+| Source | Magnitude | When |
+|---|---|---|
+| Ratio quantisation | ±1 to ±2 | always |
+| Bar lag after healing | up to ~20 | for ~2 ticks after the target eats |
+
+**Consequence for Phase 2.** The lag is invisible to any client — nothing in
+the API says an opponent ate, so it cannot be detected, flagged, or corrected,
+and the base client carries it identically. It cannot be designed away. What it
+does settle is the honesty argument, which had been resting on ±1: the number
+is most likely to be badly wrong precisely when an opponent is eating to
+survive, which is the moment a player most wants to trust it. Whatever Phase 2
+renders should not imply a precision the data cannot support at exactly that
+moment.
+
+Raw data and the join under `docs/phase-0.5/`.
+
 ---
 
 ## Phase 1 — Reference reading
