@@ -1,5 +1,7 @@
 package com.vinnyvangogh.combatinfo;
 
+import java.awt.Color;
+import net.runelite.client.config.Alpha;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -123,6 +125,22 @@ public interface CombatInfoConfig extends Config
 	default OverheadStyle overheadStyle()
 	{
 		return OverheadStyle.BAR;
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "barBackground",
+		name = "Bar background",
+		description =
+			"Colour behind the health fill, used by the Bar behind text style. Opaque by default so "
+				+ "the game's own health bar does not show through it. Lower the alpha to let it "
+				+ "show again.",
+		section = displaySection,
+		position = 6
+	)
+	default Color barBackground()
+	{
+		return Color.BLACK;
 	}
 
 	@Range(min = -200, max = 200)

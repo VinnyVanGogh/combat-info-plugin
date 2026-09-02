@@ -22,7 +22,6 @@ class CombatInfoOverheadOverlay extends Overlay
 	private static final int PAD_X = 4;
 	private static final int PAD_Y = 2;
 
-	private static final Color BAR_BACKGROUND = new Color(0, 0, 0, 150);
 	private static final Color BAR_BORDER = new Color(0, 0, 0, 200);
 
 	/**
@@ -112,7 +111,9 @@ class CombatInfoOverheadOverlay extends Overlay
 		final int width = textWidth + PAD_X * 2;
 		final int height = metrics.getAscent() + metrics.getDescent() + PAD_Y * 2;
 
-		graphics.setColor(BAR_BACKGROUND);
+		// Opaque by default: a translucent background lets the game's own health
+		// bar show through and the two read as one smeared bar.
+		graphics.setColor(config.barBackground());
 		graphics.fillRect(x, y, width, height);
 
 		final int filled = (int) Math.round(width * Math.max(0, Math.min(1, fraction)));
