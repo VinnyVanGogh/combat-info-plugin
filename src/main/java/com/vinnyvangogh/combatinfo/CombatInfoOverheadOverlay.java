@@ -25,6 +25,13 @@ class CombatInfoOverheadOverlay extends Overlay
 	private static final Color BAR_BACKGROUND = new Color(0, 0, 0, 150);
 	private static final Color BAR_BORDER = new Color(0, 0, 0, 200);
 
+	/**
+	 * Height cleared when lifting the text above the game's own health bar.
+	 * The bar's position is not exposed by the API, so this is a fixed clearance
+	 * that puts the text above it; the offset setting fine-tunes from there.
+	 */
+	private static final int BAR_CLEARANCE = 18;
+
 	private final CombatInfoPlugin plugin;
 	private final CombatInfoConfig config;
 
@@ -66,6 +73,7 @@ class CombatInfoOverheadOverlay extends Overlay
 
 		final Actor actor = readout.getActor();
 		final Point location = actor.getCanvasTextLocation(graphics, text, zOffset(actor));
+
 		if (location == null)
 		{
 			return null;
@@ -73,19 +81,19 @@ class CombatInfoOverheadOverlay extends Overlay
 
 		final double fraction = HealthReadout.fraction(readout.getRatio(), readout.getScale());
 
-		if (!config.overheadBar())
+		if (config.overheadStyle() == OverheadStyle.BAR)
 		{
-			final Color colour = config.colourGradient() ? HealthReadout.colour(fraction) : Color.WHITE;
-			OverlayUtil.renderTextLocation(graphics, location, text, colour);
+			drawBar(graphics, location, text, fraction);
+
+			// White on a filled bar. Colouring the text as well as the bar makes
+			// the two fight each other — red text on a green bar is the worst
+			// case and the reason this style exists.
+			OverlayUtil.renderTextLocation(graphics, location, text, Color.WHITE);
 			return null;
 		}
 
-		drawBar(graphics, location, text, fraction);
-
-		// White on a filled bar. Colouring the text as well as the bar makes the
-		// two fight each other — red text on a green bar is the worst case and
-		// the reason this option exists.
-		OverlayUtil.renderTextLocation(graphics, location, text, Color.WHITE);
+		final Color colour = config.colourGradient() ? HealthReadout.colour(fraction) : Color.WHITE;
+		OverlayUtil.renderTextLocation(graphics, location, text, colour);
 		return null;
 	}
 
@@ -144,6 +152,10 @@ class CombatInfoOverheadOverlay extends Overlay
 				break;
 		}
 
-		return base + config.overheadOffset();
+		// ABOVE_BAR has to clear the game's bar; the other styles either cover it
+		// or deliberately sit where it falls.
+		final int clearance = config.overheadStyle() == OverheadStyle.ABOVE_BAR ? BAR_CLEARANCE : 0;
+
+		return base + clearance + config.overheadOffset();
 	}
 }

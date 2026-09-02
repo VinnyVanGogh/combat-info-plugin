@@ -110,17 +110,19 @@ public interface CombatInfoConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "overheadBar",
-		name = "Bar behind text",
+		keyName = "overheadStyle",
+		name = "Overhead style",
 		description =
-			"Draw a health bar sized to fit the text behind it. The bar carries the colour and the "
-				+ "text stays white, so the two do not compete. Off draws coloured text only.",
+			"Bar behind text draws a health bar sized to fit the text, carrying the colour so the text "
+				+ "can stay white. Text above health bar lifts the text clear of the game's own bar "
+				+ "instead. Text only draws coloured text where it falls, which will overlap the "
+				+ "game's bar.",
 		section = displaySection,
 		position = 5
 	)
-	default boolean overheadBar()
+	default OverheadStyle overheadStyle()
 	{
-		return true;
+		return OverheadStyle.BAR;
 	}
 
 	@Range(min = -200, max = 200)
