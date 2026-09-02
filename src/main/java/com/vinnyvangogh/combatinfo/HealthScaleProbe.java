@@ -2,6 +2,8 @@ package com.vinnyvangogh.combatinfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -65,6 +67,9 @@ class HealthScaleProbe
 
 	private static final long FLUSH_PERIOD_SECONDS = 10;
 
+	/** Matches the base client's opponent timeout. */
+	private static final Duration OPPONENT_TIMEOUT = Duration.ofSeconds(5);
+
 	@Inject
 	private Client client;
 
@@ -83,6 +88,7 @@ class HealthScaleProbe
 	private File csvFile;
 	private int rowCount;
 	private Actor opponent;
+	private Instant interactionEnded;
 	private int ticks;
 	private long instanceId;
 
@@ -113,6 +119,7 @@ class HealthScaleProbe
 		}
 
 		opponent = null;
+		interactionEnded = null;
 		scalesSeen.clear();
 
 		// shutDown() runs on the client thread, and flush() touches the disk.
@@ -144,6 +151,11 @@ class HealthScaleProbe
 		if (target != null)
 		{
 			opponent = target;
+			interactionEnded = null;
+		}
+		else
+		{
+			interactionEnded = Instant.now();
 		}
 	}
 
@@ -153,6 +165,8 @@ class HealthScaleProbe
 		// The local player is the most valuable sample available: it is the one
 		// actor whose true max health the person running this already knows, so
 		// it tests maxHealth <= healthScale directly rather than by inference.
+		expireOpponent();
+
 		record(client.getLocalPlayer(), "SELF");
 		record(opponent, "OPPONENT");
 
@@ -194,6 +208,32 @@ class HealthScaleProbe
 		}
 	}
 
+	/**
+	 * Keeping the last opponent through a broken interaction is right; keeping
+	 * it forever is not. A dead NPC despawns but the reference stays live and
+	 * reports a stale health scale, so it goes on being sampled as a nameless
+	 * actor. The base client expires its opponent on the same timer.
+	 */
+	private void expireOpponent()
+	{
+		if (opponent == null || interactionEnded == null)
+		{
+			return;
+		}
+
+		final Player self = client.getLocalPlayer();
+		if (self != null && self.getInteracting() != null)
+		{
+			return;
+		}
+
+		if (Duration.between(interactionEnded, Instant.now()).compareTo(OPPONENT_TIMEOUT) > 0)
+		{
+			opponent = null;
+			interactionEnded = null;
+		}
+	}
+
 	private void record(Actor actor, String role)
 	{
 		if (actor == null || rowCount >= MAX_ROWS)
@@ -204,8 +244,10 @@ class HealthScaleProbe
 		final int healthScale = actor.getHealthScale();
 		final int healthRatio = actor.getHealthRatio();
 
-		// healthScale is -1 until the server has sent a health bar for this actor.
-		if (healthScale <= 0)
+		// healthScale is -1 until the server has sent a health bar for this
+		// actor. A despawned actor can keep a stale scale while its ratio has
+		// already gone negative, so both have to be checked.
+		if (healthScale <= 0 || healthRatio < 0)
 		{
 			return;
 		}
