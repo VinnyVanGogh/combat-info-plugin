@@ -1,7 +1,7 @@
 # Combat Info
 
 Opponent health for NPC and player targets, drawn over the target instead of
-only in a corner panel — and honest about what the number is worth.
+only in a corner panel, and honest about what the number is worth.
 
 A standalone replacement for RuneLite's built-in **Opponent Information**.
 
@@ -39,7 +39,7 @@ the middle of the screen and read the health in the corner, and the number it
 shows is a guess presented in the same typeface as a fact.
 
 This plugin draws the readout **on the target**, and documents exactly how much
-the number can be trusted — because the honest answer is "mostly, except at the
+the number can be trusted, because the honest answer is "mostly, except at the
 one moment you care most", and nobody says so.
 
 ## Features
@@ -51,14 +51,14 @@ Three styles:
 |---|---|
 | **Bar behind text** | Draws a health bar sized to fit the text, with the text inside it. The bar carries the colour, the text stays white. |
 | **Text above health bar** | Lifts the text clear of the game's own bar rather than covering it. |
-| **Text only** | Draws where it falls. Will overlap the game's bar — included for completeness. |
+| **Text only** | Draws where it falls. Will overlap the game's bar. Included for completeness. |
 
 **Works on player targets**, not just NPCs. No other Plugin Hub plugin draws
 overhead health for players.
 
 **Both sides of the fight, in one visual language.** Your own health can be
 drawn the same way as your opponent's. Other plugins can show your health, but
-none of them will match this readout — you would get yours in one style and
+none of them will match this readout. You would get yours in one style and
 theirs in another, side by side.
 
 <p align="center">
@@ -66,7 +66,7 @@ theirs in another, side by side.
 </p>
 
 <p align="center"><em>Yours on the left, theirs on the right, identical styling.
-Your own number comes from the hitpoints orb, so it is exact — never recovered.</em></p>
+Your own number comes from the hitpoints orb, so it is exact, never recovered.</em></p>
 
 **Stat comparison** against a player opponent, from the same cached hiscores
 result the health lookup already fetched. No second request.
@@ -75,7 +75,7 @@ result the health lookup already fetched. No second request.
 large NPC's name plate and the top-of-screen boss bar both crowd the space above
 their head, and the right answer differs per monster.
 
-**Configurable colour ramp.** Three stops — full, half, empty — each with an
+**Configurable colour ramp.** Three stops (full, half, empty), each with an
 alpha channel. Interpolated, so the colour slides rather than snapping between
 bands.
 
@@ -92,7 +92,7 @@ enabled so the two never stack in the same corner. Both are switchable.
 ## About that number
 
 **Opponent health is never sent to your client.** The server broadcasts a health
-*bar* — a ratio out of a fixed scale. Every plugin that shows a number, this one
+*bar*: a ratio out of a fixed scale. Every plugin that shows a number, this one
 and RuneLite's built-in included, is inverting that ratio to guess.
 
 The scale is **30**. That was measured on a live world, not assumed.
@@ -106,8 +106,8 @@ value, always. No guessing involved.
 or four possible values, and the number shown is the middle of that band.
 
 For an 88 hitpoint opponent showing ratio 10, the true health is 28, 29 or 30.
-The readout says 29. That is the best single guess available — never wrong by
-more than one — but it is a guess, and RuneLite's built-in plugin renders it
+The readout says 29. That is the best single guess available, never wrong by
+more than one, but it is still a guess, and RuneLite's built-in plugin renders it
 identically to the maximum beside it, which it genuinely knows.
 
 | Max hitpoints | Midpoint exactly right | Worst error |
@@ -126,17 +126,17 @@ Measured across 386 cross-checked readings from a real fight between two
 accounts, each logging its own true hitpoints and the ratio it observed for the
 other:
 
-- Every reading that was wrong was wrong in the **same direction** — showing
+- Every reading that was wrong was wrong in the **same direction**, showing
   less health than the target actually had.
 - Typical catch-up: **two game ticks**. Worst observed: **four ticks**.
 - Worst single reading: **19 hitpoints stale.**
 
 Nothing in the client API reports that an opponent ate. This cannot be detected,
-flagged, or corrected — not by this plugin, and not by RuneLite's built-in one,
+flagged, or corrected. Not by this plugin, and not by RuneLite's built-in one,
 which carries the identical error silently.
 
 **The practical version:** trust the number while you are trading hits. Distrust
-it for a second or two after they eat — which is exactly when you most want to
+it for a second or two after they eat, which is exactly when you most want to
 trust it. That is a property of the game's networking, not of any plugin.
 
 Method, numbers and the cross-account analysis script are in
@@ -152,7 +152,7 @@ slides rather than snapping between bands:
 |:---:|:---:|:---:|
 | <img src="docs/images/pvp-context.png" alt="Player target at 67% health in the wilderness" width="260"> | <img src="docs/images/hero.png" alt="Player target at 33% health" width="260"> | <img src="docs/images/low-health.png" alt="Player target at 23% health, bar orange" width="260"> |
 
-Real PvP, not a test dummy — skulled, in the wilderness, hitsplats landing. The
+Real PvP, not a test dummy: skulled, in the wilderness, hitsplats landing. The
 readout stays legible over a moving target against cave-floor terrain, which is
 the case that broke every earlier iteration of this overlay.
 
@@ -219,16 +219,16 @@ the case that broke every earlier iteration of this overlay.
 
 ## Compatibility
 
-**Opponent Information** — safe to run both. This plugin hides its own panel
+**Opponent Information.** Safe to run both. This plugin hides its own panel
 while the stock one is enabled, so you get the stock panel plus this plugin's
 overhead rendering. Turn the stock plugin off to see this one's panel, or turn
 off *Hide panel if stock plugin is on* to force both.
 
-**Entity Hider** — if Entity Hider is hiding an actor's 2D layer, the game's
+**Entity Hider.** If Entity Hider is hiding an actor's 2D layer, the game's
 health bar is already gone and this plugin's overhead readout is unaffected,
 since it draws independently.
 
-**Boss health bar** — when the game shows its own top-of-screen bar for your
+**Boss health bar.** When the game shows its own top-of-screen bar for your
 target, this plugin stands down by default rather than duplicating it.
 
 ## Privacy and network use
@@ -240,7 +240,7 @@ opponent, cached for an hour, shared with RuneLite's own hiscore cache so
 enabling several plugins cannot multiply requests.
 
 The request is made only in direct response to you engaging that specific
-target — never speculatively, never for bystanders, never for more than one
+target. Never speculatively, never for bystanders, never for more than one
 player at a time.
 
 Turn it off with **Targets → Look up player hitpoints**. Player targets then
@@ -267,7 +267,7 @@ players. Without it, only the fraction of the bar is knowable, which is why an
 unranked player degrades to a percentage rather than a wrong number.
 
 **Your own health skips all of this.** The client knows it exactly, from the
-hitpoints orb, so it is never put through the recovery — printing a guessed 29
+hitpoints orb, so it is never put through the recovery. Printing a guessed 29
 where the truth is a known 30 would be absurd, and would undermine the only
 claim this plugin makes. The readout is exact for you, exact for small NPCs, and
 banded only where the data genuinely is.
@@ -286,7 +286,7 @@ they run every frame while the underlying bar changes only on a tick.
 **Nothing appears when I attack something.** The readout only tracks a target
 *you* engaged. Being attacked does not trigger it, by design.
 
-**The panel never shows.** Opponent Information is probably enabled — this
+**The panel never shows.** Opponent Information is probably enabled, and this
 plugin hides its panel to avoid stacking. Disable the stock plugin, or turn off
 *Advanced → Hide panel if stock plugin is on*.
 

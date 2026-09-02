@@ -1,11 +1,11 @@
-# Combat Info — Research & Build Brief
+# Combat Info, Research & Build Brief
 
 A RuneLite Plugin Hub plugin. Standalone replacement for the stock **Opponent
 Information** plugin, with a better overlay and overhead rendering, covering both
 NPCs and PvP opponents.
 
-Work through the phases in order. Phase 0 and Phase 0.5 gate everything else —
-report findings before writing plugin code.
+Work through the phases in order. Phase 0 and Phase 0.5 gate everything else.
+Report findings before writing plugin code.
 
 ---
 
@@ -14,7 +14,7 @@ report findings before writing plugin code.
 **It does not talk to questpath, or to any server, beyond the single hiscores
 lookup described in Phase 0.**
 
-This started as one idea — a RuneLite plugin for the questpath account — and was
+This started as one idea, a RuneLite plugin for the questpath account, and was
 split into two on purpose. Bundling an account-sync feature into a combat overlay
 would be a bad trade in three separate ways:
 
@@ -32,10 +32,10 @@ adding an HTTP client here, stop: it belongs in the other one.
 
 ---
 
-## Phase 0 — Compliance research
+## Phase 0, Compliance research
 
 Most of the binding constraints are already in this repo. **Read `AGENTS.md`
-first** — the template ships RuneLite's own rules list, and it is more specific
+first**, the template ships RuneLite's own rules list, and it is more specific
 than the wiki pages. The ones that decide this plugin's shape:
 
 > - No level-based PvP player indicators (highlighting attackable players or
@@ -55,7 +55,7 @@ Then read, and summarise what is *new* relative to the above:
 - `https://legal.jagex.com/docs/rules/macro-and-client-features-not-permitted`
 - `https://github.com/runelite/plugin-hub` (README + review guidelines)
 
-### Out of scope — do not implement, do not propose workarounds
+### Out of scope: do not implement, do not propose workarounds
 
 - Any highlighting, icon, or indicator based on combat level, wilderness level,
   or whether a player is attackable.
@@ -65,7 +65,7 @@ Then read, and summarise what is *new* relative to the above:
 - Opponent freeze timers; PK/skull warnings.
 - Conditional menu entry removal or menu option changes on players.
 - Any network transmission of other players' data.
-- Reflection, JNI, subprocesses, or runtime-downloaded code. Java only — no
+- Reflection, JNI, subprocesses, or runtime-downloaded code. Java only, no
   Kotlin or Scala.
 
 ### In scope, with precedent
@@ -81,10 +81,10 @@ base client already does this for player opponents, resolving max HP from
 would require a second concurrent lookup, stop and flag it rather than building
 it. That single-target gate is the entire compliance basis for this feature.
 
-### Phase 0 findings — completed 2026-08-26
+### Phase 0 findings (completed 2026-08-26)
 
 Sources read: RuneLite `Rejected-or-Rolled-Back-Features`; Jagex Third Party
-Client Guidelines (via the OSRS Wiki mirror — `secure.runescape.com` returns
+Client Guidelines (via the OSRS Wiki mirror, `secure.runescape.com` returns
 HTTP 403); `legal.jagex.com` macro-and-client-features rules; plugin-hub
 README; RuneLite wiki `Plugin-Hub-Review` and
 `Information-about-the-Plugin-Hub`; base-client `opponentinfo` and `hiscore`
@@ -94,8 +94,7 @@ sources.
   request should only be in direct response to a user request each time",
   alongside a prohibition on "repeated page/content requests from our
   website". Not in `AGENTS.md`. It is the sentence a reviewer applies.
-- The hiscores endpoint is `services.runescape.com` / `secure.runescape.com`
-  — Jagex's own servers, not a third party. `AGENTS.md`'s mandatory warning
+- The hiscores endpoint is `services.runescape.com` / `secure.runescape.com`, Jagex's own servers, not a third party. `AGENTS.md`'s mandatory warning
   string about "a 3rd-party server not controlled or verified by RuneLite
   developers" is therefore inaccurate for this feature. Do not paste it
   verbatim; write a warning that says what is actually sent.
@@ -127,7 +126,7 @@ invariant holds.
 
 ---
 
-## Phase 0.5 — Measure before building
+## Phase 0.5, Measure before building
 
 On a PvP world, instrument and log `Actor.getHealthScale()` and
 `Actor.getHealthRatio()` for player actors across a range of HP levels.
@@ -145,34 +144,34 @@ Note the testing rule in `AGENTS.md`: you cannot verify in-game behaviour
 yourself, and must not try. This phase is instrumentation you write and the
 **user** runs.
 
-### Phase 0.5 findings — completed 2026-08-26
+### Phase 0.5 findings (completed 2026-08-26)
 
 Measured with HealthScaleProbe against live NPCs and the local player.
 Raw data: `.runelite/combat-info/health-scale-probe.csv`.
 
-**`healthScale` is 30 for every actor observed** — four distinct Guard ids, a
+**`healthScale` is 30 for every actor observed**. four distinct Guard ids, a
 Man, and a level-105 player. It is a fixed health-bar resolution, not the
 actor's max health. The condition for exact recovery therefore reduces to
 `maxHealth <= 30`.
 
 - **NPC targets: exact.** Guard (maxHealth 22, healthScale 30, ratio 20)
-  recovers min 15 / max 15 — a single value. `NPCManager.getHealth()` gives
+  recovers min 15 / max 15, a single value. `NPCManager.getHealth()` gives
   the max health, so the NPC readout can print an integer honestly. Bosses
   above 30 hitpoints are the exception and fall to the interval case.
 - **Player targets: an interval, never exact.** Any account above 30
   hitpoints, which is all of them. Worked example at 99 hitpoints and
-  ratio 15: min 48, max 51 — a 4-wide band. The base client prints the
+  ratio 15: min 48, max 51, a 4-wide band. The base client prints the
   midpoint, 50, formatted identically to a known value.
 
 **Consequence for Phase 2, binding:** the player readout must render a range
 or a percentage. It must never format a recovered player health as a bare
 integer. The "honest uncertainty" line in this brief is the whole point of
-the plugin, not a nicety — stock is actively misleading here and that is the
+the plugin, not a nicety, stock is actively misleading here and that is the
 gap worth shipping into.
 
 Confirmed against a live player opponent: a live opponent, combat 91, healthScale
-30 across ratios 23, 20 and 19 during an actual fight. Every actor measured —
-NPC, local player, and opposing player — reports scale 30, so nothing about
+30 across ratios 23, 20 and 19 during an actual fight. Every actor measured
+(NPC, local player, and opposing player) reports scale 30, so nothing about
 the verdict is left resting on inference.
 
 Interval width is roughly `maxHealth / (healthScale - 1)`, so about 3 hitpoints
@@ -181,7 +180,7 @@ difference between a hit killing and not, which is exactly the judgement a
 midpoint printed as an integer invites a user to make wrongly.
 
 Observed live during the same fight. An existing plugin displayed `29/88`
-for this opponent while the probe recorded `ratio=10`. The 88 is exact — it
+for this opponent while the probe recorded `ratio=10`. The 88 is exact, it
 is the hiscores Hitpoints level. The 29 is not: healths 28, 29 and 30 all
 produce ratio 10, and 29 is merely the midpoint, rendered in the same
 typeface as the number beside it that is genuinely known. At the same
@@ -191,7 +190,7 @@ This is the plugin's reason to exist, stated concretely: not that stock
 lacks a range, but that stock presents a guess as a measurement at exactly
 the moment a player is deciding whether their next hit kills.
 
-#### Cross-account validation — 2026-09-02
+#### Cross-account validation, 2026-09-02
 
 Two accounts, `VinnyWanGogh` (96 max) and `VinnyLanGogh` (99 max), fighting on
 world 316 with a probe on each client. Each side records its own hitpoints from
@@ -204,7 +203,7 @@ yourself or somebody else, which until now was assumed rather than tested.
 
 **But quantisation is the smaller error.** 32 readings (8.3%) sat above their
 range, every one of them because the observed health bar lags healing. Median
-catch-up 1203ms, worst 2405ms — two game ticks typically, four at worst. The
+catch-up 1203ms, worst 2405ms, two game ticks typically, four at worst. The
 worst single reading was 19 hitpoints stale.
 
 The direction is the evidence: 32 above, 0 below. A stale-low bar produces
@@ -217,7 +216,7 @@ So the readout carries two errors of very different size:
 | Ratio quantisation | ±1 to ±2 | always |
 | Bar lag after healing | up to ~20 | for ~2 ticks after the target eats |
 
-**Consequence for Phase 2.** The lag is invisible to any client — nothing in
+**Consequence for Phase 2.** The lag is invisible to any client, nothing in
 the API says an opponent ate, so it cannot be detected, flagged, or corrected,
 and the base client carries it identically. It cannot be designed away. What it
 does settle is the honesty argument, which had been resting on ±1: the number
@@ -232,33 +231,33 @@ had no say in appearing in a public repository.
 
 ---
 
-## Phase 1 — Reference reading
+## Phase 1, Reference reading
 
-**Base client** (`runelite/runelite`, BSD-licensed — reuse with credit):
+**Base client** (`runelite/runelite`, BSD-licensed, reuse with credit):
 
-- `plugins/opponentinfo/OpponentInfoPlugin.java` — `InteractingChanged`
+- `plugins/opponentinfo/OpponentInfoPlugin.java`, `InteractingChanged`
   handling, the 5-second opponent timeout, boss HP HUD text override
-- `plugins/opponentinfo/OpponentInfoOverlay.java` — the ratio-to-health
+- `plugins/opponentinfo/OpponentInfoOverlay.java`, the ratio-to-health
   recovery math, NPC max HP via `NPCManager`, player max HP via hiscores,
   `hasHpHud()` suppression
-- `plugins/opponentinfo/PlayerComparisonOverlay.java` — how the stat comparison
+- `plugins/opponentinfo/PlayerComparisonOverlay.java`, how the stat comparison
   is gated behind a config flag
-- `plugins/hiscore/HiscorePlugin.java` — how lookups are gated on user action
-- `client/hiscore/HiscoreManager.java` — caching and async behavior
+- `plugins/hiscore/HiscorePlugin.java`, how lookups are gated on user action
+- `client/hiscore/HiscoreManager.java`, caching and async behavior
 
 **Plugin Hub reference:**
 
-- `devrat0/npc-health-text-plugin` — overhead HP text rendering, per-NPC
+- `devrat0/npc-health-text-plugin`, overhead HP text rendering, per-NPC
   position overrides, color gradient, whitelist/blacklist filtering
 
 **API surface:** `Actor.getHealthRatio()`, `Actor.getHealthScale()`,
 `NPCComposition`, `NPCManager.getHealth()`, `OverlayManager`, `OverlayPosition`.
 
-### Phase 1 findings — completed 2026-08-26
+### Phase 1 findings, completed 2026-08-26
 
 **Reuse from the base client.**
 
-- `hasHpHud()` is NPC-only — it returns false for players outright. It reads
+- `hasHpHud()` is NPC-only, it returns false for players outright. It reads
   `VarbitID.HPBAR_HUD_BOSS_DISABLED` and `VarPlayerID.HPBAR_HUD_NPC` and
   compares against the NPC's composition id. There is no in-game HUD to
   suppress against for a player target, so the suppression rule in Phase 2
@@ -293,14 +292,14 @@ had no say in appearing in a public repository.
   string, design the placeholders so that unset values do not need cleaning
   up afterwards.
 
-**The gap is confirmed.** That plugin is NPC-only — it has no player rendering
+**The gap is confirmed.** That plugin is NPC-only, it has no player rendering
 at all. Overhead health for a player target is not something a hub plugin
 currently does, which is the differentiator, and also why it was the one item
 worth asking about rather than assuming.
 
 ---
 
-## Phase 2 — Scope
+## Phase 2, Scope
 
 ### The overlay
 
@@ -317,7 +316,7 @@ Information:
   format string. Optional decimal precision on percentages.
 - **Color gradient** keyed to remaining health fraction.
 - **Configurable opponent timeout.** Stock hardcodes a 5-second `WAIT`.
-- **Persist-after-timeout option** — keep the readout up until the target dies
+- **Persist-after-timeout option**. keep the readout up until the target dies
   or despawns, rather than when the in-game bar expires.
 - **Whitelist / blacklist** filtering by name.
 - **Suppression when redundant.** Stand down when the in-game HP HUD is showing
@@ -326,7 +325,7 @@ Information:
   panel over it.
 
 The config class is deliberately absent from the skeleton. It arrives here, once
-the option list above survives Phase 0. Config group must be `combat-info` —
+the option list above survives Phase 0. Config group must be `combat-info`, 
 specific, per `AGENTS.md`, and never renamed afterwards without a migration.
 
 ### NPC targets
@@ -336,7 +335,7 @@ network, no compliance surface.
 
 ### Player targets (PvP)
 
-- Percentage from the health ratio — no lookup required.
+- Percentage from the health ratio, no lookup required.
 - Exact or interval HP via the single-opponent hiscores lookup described in
   Phase 0.
 - Two config flags, matching the base client's actual shape:
@@ -345,7 +344,7 @@ network, no compliance surface.
 
   Correction: an earlier draft of this brief said the HP lookup mirrors
   `lookupOnInteraction()`. It does not. In the base client the lookup in
-  `OpponentInfoOverlay.render()` is ungated by any config item —
+  `OpponentInfoOverlay.render()` is ungated by any config item;
   `lookupOnInteraction` (default false) gates only `PlayerComparisonOverlay`.
   Default-on therefore *is* stock precedent. Give it an off switch anyway;
   stock has none, and having one is worth stating in the submission PR.
@@ -359,7 +358,7 @@ network, no compliance surface.
 
 ### Cut
 
-Cut 2026-08-26 — cut, not deferred. These sit near the "impossible switches in
+Cut 2026-08-26, cut, not deferred. These sit near the "impossible switches in
 PvP" language in Jagex's 2022 statement, and near `AGENTS.md`'s "no attack
 counters" and "no PvP target scouting information". Nothing in the overlay
 needs them. Do not reintroduce without revisiting Phase 0.
@@ -369,24 +368,24 @@ needs them. Do not reintroduce without revisiting Phase 0.
 
 ---
 
-## Phase 3 — Engineering quality bar
+## Phase 3, Engineering quality bar
 
 `AGENTS.md` carries RuneLite's own rules for logging, threading, HTTP, config
 naming, and packaging, and they apply in full. What is specific to this plugin:
 
-- RuneLite dependency stays pinned to an explicit version. Already done —
+- RuneLite dependency stays pinned to an explicit version. Already done, 
   `build.gradle` pins `1.12.37`; bump deliberately, never to `latest.release`.
   Note (Phase 0): `runelite-plugin.properties` sets `build=standard`, and the
   plugin-hub packager replaces `build.gradle` and `settings.gradle` at
-  submission. The pin governs local development only — it does not make the
+  submission. The pin governs local development only, it does not make the
   hub build reproducible. Keep it for local determinism; claim no more.
 - No mutation of injected shared singletons. In particular, do not call
-  `registerTypeAdapter` on an injected `GsonBuilder` — build any Gson instance
+  `registerTypeAdapter` on an injected `GsonBuilder`, build any Gson instance
   once into a field.
 - Thread safety: overlay and plugin state is touched from both the client thread
   and RuneLite's scheduler. Use appropriate synchronization or concurrent
   collections. Do not rely on defensive copies alone.
-- `shutDown()` must fully reverse `startUp()` — every overlay removed, all
+- `shutDown()` must fully reverse `startUp()`, every overlay removed, all
   cached state cleared, no residual markers or listeners.
 - No `return` inside a `finally` block. No `Future.get()` without a timeout.
 - Real unit tests for the ratio-to-health recovery math, including the
@@ -395,7 +394,7 @@ naming, and packaging, and they apply in full. What is specific to this plugin:
 
 ---
 
-## Phase 4 — Getting it installed
+## Phase 4, Getting it installed
 
 Adoption is downstream of the plugin being good, but these are the parts that
 are cheap and get skipped:
