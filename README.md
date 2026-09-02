@@ -46,9 +46,11 @@ carries the identical error without mentioning it.
 it for a second or two after they eat, which is exactly when you most want to
 trust it. That is a property of the game's networking, not of any plugin.
 
-The measurement, the raw data, and the analysis script are in
-[`docs/phase-0.5/`](docs/phase-0.5/) if you want to check the claim rather than
-take it.
+These are measurements, not estimates. How they were taken, the numbers behind
+them, and the method used to cross-check one account's reading against another's
+are written up in [BRIEF.md](BRIEF.md) under Phase 0.5, along with the analysis
+script in [`docs/phase-0.5/`](docs/phase-0.5/). The raw capture files are kept
+out of this repository because they name real accounts.
 
 ## Privacy
 

@@ -7,3 +7,9 @@ build
 nbactions.xml
 nb-configuration.xml
 nbproject/
+# Phase 0.5 measurement data. Captured live, so it names real accounts —
+# kept out of the published repo. The conclusions live in BRIEF.md.
+docs/phase-0.5/*.csv
+
+# Not part of this plugin; appeared in the working tree from another tool.
+account_app.css

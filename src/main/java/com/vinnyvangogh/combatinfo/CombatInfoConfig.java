@@ -302,16 +302,4 @@ public interface CombatInfoConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(
-		keyName = "healthScaleProbe",
-		name = "Health scale probe (debug)",
-		description =
-			"Log raw health ratios to .runelite/combat-info for analysis. Diagnostic only; leave off.",
-		section = advancedSection,
-		position = 3
-	)
-	default boolean healthScaleProbe()
-	{
-		return false;
-	}
 }

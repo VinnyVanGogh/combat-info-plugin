@@ -20,9 +20,7 @@ import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.Hooks;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.NPCManager;
 import net.runelite.client.hiscore.HiscoreEndpoint;
 import net.runelite.client.hiscore.HiscoreManager;
@@ -63,9 +61,6 @@ public class CombatInfoPlugin extends Plugin
 	private OverlayManager overlayManager;
 
 	@Inject
-	private EventBus eventBus;
-
-	@Inject
 	private NPCManager npcManager;
 
 	@Inject
@@ -81,9 +76,6 @@ public class CombatInfoPlugin extends Plugin
 	private CombatInfoOverheadOverlay overheadOverlay;
 
 	@Inject
-	private HealthScaleProbe healthScaleProbe;
-
-	@Inject
 	private Hooks hooks;
 
 	private final Hooks.RenderableDrawListener drawListener = this::shouldDraw;
@@ -96,7 +88,6 @@ public class CombatInfoPlugin extends Plugin
 	private Instant interactionEnded;
 	private HiscoreEndpoint hiscoreEndpoint = HiscoreEndpoint.NORMAL;
 	private Plugin stockPlugin;
-	private boolean probeRunning;
 
 	@Provides
 	CombatInfoConfig provideConfig(ConfigManager configManager)
@@ -115,8 +106,6 @@ public class CombatInfoPlugin extends Plugin
 			.filter(p -> STOCK_PLUGIN_NAME.equals(p.getName()))
 			.findFirst()
 			.orElse(null);
-
-		syncProbe();
 	}
 
 	@Override
@@ -126,21 +115,10 @@ public class CombatInfoPlugin extends Plugin
 		overlayManager.remove(overheadOverlay);
 		hooks.unregisterRenderableDrawListener(drawListener);
 
-		stopProbe();
-
 		readout = null;
 		opponent = null;
 		interactionEnded = null;
 		stockPlugin = null;
-	}
-
-	@Subscribe
-	public void onConfigChanged(ConfigChanged event)
-	{
-		if (CombatInfoConfig.GROUP.equals(event.getGroup()))
-		{
-			syncProbe();
-		}
 	}
 
 	@Subscribe
@@ -341,40 +319,6 @@ public class CombatInfoPlugin extends Plugin
 	boolean stockPluginEnabled()
 	{
 		return stockPlugin != null && pluginManager.isPluginEnabled(stockPlugin);
-	}
-
-	private void syncProbe()
-	{
-		if (config.healthScaleProbe())
-		{
-			startProbe();
-		}
-		else
-		{
-			stopProbe();
-		}
-	}
-
-	private void startProbe()
-	{
-		if (probeRunning)
-		{
-			return;
-		}
-		eventBus.register(healthScaleProbe);
-		healthScaleProbe.startUp();
-		probeRunning = true;
-	}
-
-	private void stopProbe()
-	{
-		if (!probeRunning)
-		{
-			return;
-		}
-		eventBus.unregister(healthScaleProbe);
-		healthScaleProbe.shutDown();
-		probeRunning = false;
 	}
 
 	/** Immutable snapshot of everything the overlays need for one tick. */

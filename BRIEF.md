@@ -226,7 +226,9 @@ survive, which is the moment a player most wants to trust it. Whatever Phase 2
 renders should not imply a precision the data cannot support at exactly that
 moment.
 
-Raw data and the join under `docs/phase-0.5/`.
+The join script is under `docs/phase-0.5/`. The raw captures are gitignored
+rather than committed: they name real accounts, including an opponent who
+had no say in appearing in a public repository.
 
 ---
 
